@@ -8,22 +8,6 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 namespace lyy {
-int Listen(const char * /*ip*/, uint16_t port) {
-    int listenfd = ::socket(AF_INET, SOCK_STREAM, 0);
-    ::sockaddr_in serveraddr;
-    ::socklen_t len;
-    ::bzero(&serveraddr, sizeof(serveraddr));
-    serveraddr.sin_family = AF_INET;
-    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serveraddr.sin_port = htons(port);
-    ::bind(listenfd, (::sockaddr *)&serveraddr, sizeof(serveraddr));
-    ::listen(listenfd, 5);
-    return listenfd;
-}
-
-int set_socket_nonblock(int fd) {
-    return fcntl(fd, F_SETFL, O_NONBLOCK);
-}
 
 /*
 class Tcp4Socket {

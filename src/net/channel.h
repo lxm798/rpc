@@ -1,20 +1,18 @@
 #ifndef LYY_NET_CHANNEL_H
 #define LYY_NET_CHANNEL_H
-#include <inttypes.h>
-#include <sys/epoll.h>
 #include <cstddef>
-#include <stdio.h>
-#include <errno.h>
-#include <netinet/in.h>
 
 #include <boost/shared_ptr.hpp>
 #include "poller.h"
 #include "socket.h"
+#include <boost/function.hpp>
 namespace lyy {
     class Channel {
         public:
-            Channel():len(sizeof(sockaddr)){
+            typedef boost::function<void(int)> EventHandler;
+            Channel() {
             }
+            /*
             void set_fd(int fd) {
                 _fd = fd;
             }
@@ -30,22 +28,23 @@ namespace lyy {
             uint16_t get_port() {
                 return _port;
             }
-            /*
             void set_ev(epoll_event *ev) {
                 _ev = ev;
             }
             */
+            /*
             epoll_event *get_ev() {
                 _ev = boost::shared_ptr<epoll_event>(new epoll_event());
                 return _ev.get();
             }
-            bool is_acceptor() {
-                return acceptor;
-            }
-            void set_acceptor() {
-                acceptor = true;
+            */
+            void set_event_handler(EventHandler handler) {
+                _handler = handler;
             }
             void handleEvent(int event) {
+                _handler(event);
+            }
+                /*
                 if (acceptor) {
                     while (1) {
                         int fd = accept(get_fd(),(sockaddr*)&cliaddr, &len);
@@ -91,6 +90,7 @@ namespace lyy {
                             delete this;
                         }
                     }
+                    */
                    /* else if (events[i].events & EPOLLERR || events[i].events & EPOLLHUP) {
                         printf("fd %d port %d error\n", chs->get_fd(), chs->get_port());
                         close(chs->get_fd());
@@ -98,18 +98,12 @@ namespace lyy {
                         delete chs;
                     }
                     */
-                }
-            }
             
         private:
-            int _fd;
-            uint16_t _port;
-            boost::shared_ptr<epoll_event> _ev;
-            bool acceptor;
-            ::sockaddr_in cliaddr;
-            ::socklen_t len;
+            //int _fd;
+            //boost::shared_ptr<epoll_event> _ev;
             boost::shared_ptr<Poller> _poller; 
-            char buf[1025];
+            EventHandler _handler;
     };
 }
 #endif

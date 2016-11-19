@@ -13,6 +13,9 @@ namespace lyy {
             Looper(boost::shared_ptr<Poller> poller) {
                 _poller = poller;
             }
+            void set_poller(boost::shared_ptr<Poller> poller) {
+                _poller = poller;
+            }
             void loop() {
                 struct epoll_event events[200];
                 int ret;
