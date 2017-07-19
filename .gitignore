@@ -1,4 +1,6 @@
 output
+*a.out
+*.o
 *gch
 *.swp
 *core*
