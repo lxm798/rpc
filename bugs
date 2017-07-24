@@ -1,0 +1,6 @@
+1. CMAKE Compile failed--not create install
+    not exe make install in build
+2. can not find head files
+    not set include_directories
+3. class not decleared even if i have include header file
+    maybe circular reference
