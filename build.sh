@@ -1,18 +1,29 @@
 #!/bin/sh
 
+if [ ! -d './third-lib/gflags' ]; then
+    cd third-lib/
+    git clone https://github.com/gflags/gflags 
+    cd gflags/
+    mkdir build
+    cd build
+    cmake ..
+    make
+    cd ../../..
+fi
 set -x
 
 SOURCE_DIR=`pwd`
 BUILD_DIR=${BUILD_DIR:-./build}
 BUILD_TYPE=${BUILD_TYPE:-release}
 INSTALL_DIR=${INSTALL_DIR:-install}
-PREFIX_PATH='./'
+PREFIX_PATH='./;./third-lib/gflags/build'
+#PREFIX_PATH='./'
 mkdir -p $BUILD_DIR/$BUILD_TYPE \
   && cd $BUILD_DIR/$BUILD_TYPE \
   && cmake \
            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
            -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-           -DCMAKE_PREFIX_PATH=$PREFIX_PATH \
+           "-DCMAKE_PREFIX_PATH=$PREFIX_PATH" \
            $SOURCE_DIR \
   && make $*
 

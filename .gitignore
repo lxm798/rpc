@@ -1,8 +1,10 @@
 output
-*a.out
+a.out
 *.o
 *gch
 *.swp
 *core*
 *tags*
 build/*
+third-lib/gflags
+third-lib/gflags/*
