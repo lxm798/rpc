@@ -10,7 +10,19 @@
 #include <stdio.h>
 #include "net/poller.h"
 #include "net/channel.h"
+#include "net/socket"
 namespace lyy {
+    struct SocketProcessInfo {
+        Socket *socket;
+        Protocol *protocol;
+    };
+    void co_process(schedule * schedule, void *ud) {
+        SocketProcessInfo *spi = static_cast<SocketProcessInfo *> (ud);
+        if (spi->protocol->process(ud->socket) < 0) {
+            WARNING("process socket %d failed", spi->socket->fd());
+        }
+    }
+
 	class Acceptor {
         public:
         typedef boost::function<void(int)> EventHandler;
@@ -72,11 +84,17 @@ namespace lyy {
                 // 是否可以传递局部变量
                 epoll_event * ev = new epoll_event();
                 Channel *chs = new Channel();
+                Socket *s = new Socket(fd);
+                SocketProcessInfo *spi = new SocketProcessInfo();
+                spi->socket = s;
+                spi->protocol = new HeaderProtocol; 
+                int id = coroutine_new(looper->co_scheduler(), co_process, new SocketProcessInfo) ;
+                s->set_coroutineid(id);
                 //chs->set_fd(fd);
                 //chs->set_port(cliaddr.sin_port);
-                chs->set_event_handler(boost::bind(_handler, fd, _1));
+                // chs->set_event_handler(boost::bind(co_resume, )));
                 ev->events = EPOLLET|EPOLLIN;
-                ev->data.ptr = chs;
+                ev->data.ptr = (int*)id;
                 _poller->add(fd, ev);
             }
 		}

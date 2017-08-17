@@ -17,4 +17,19 @@
     WRITE_LOG(WARNING, _fmt, ##args)
 #define FATAL(_fmt, args...) \
     WRITE_LOG(FATAL, _fmt, args...)
+
+#define DECLARE_SINGTON(CLASS_NAME) \
+    public: \
+    CLASS_NAME instance(); \
+    private: \
+    CLASS_NAME(); \
+    CLASS_NAME *_instance;
+
+#define DEFINE_SINGTON(CLASS_NAME) \
+    CLASS_NAME* CLASS_NAME::instance() { \
+        if (_instance == NULL) { \
+            _instance = new CLASS_NAME(); \
+        } \
+        return _instance; \
+    }
 #endif

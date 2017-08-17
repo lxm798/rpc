@@ -5,13 +5,101 @@
 #include <boost/shared_ptr.hpp>
 #include "net/poller.h"
 #include <boost/function.hpp>
+#include <google/protobuf/service.h>
 namespace lyy {
+struct ChannelOptions {
+    uint32_t timeout_ms;
+    uint32_t protocol;
+    uint32_t connect_type;
+};
+struct SocketUD {
+    Socket *socket;
+    const char *data;
+};
+class Channel : public RpcChannel {
+public:
+    Channel() : _service_name(NULL), _opt(NULL) {
+    }
+    void init(const char *service_name, ChannelOptions *opt) {
+        _service_name = service_name;
+        _opt = opt;
+    }
+
+    virtual void CallMethod(const MethodDescriptor* method,
+                          RpcController* controller,
+                          const Message* request,
+                          Message* response,
+                          Closure* done);
+private:
+    const char* _service_name;
+    ChannelOptions *_opt;
+};
+
+void Channel::CallMethod(const MethodDescriptor* method,
+                          RpcController* controller,
+                          const Message* request,
+                          Message* response,
+                          Closure* done) {
+    if (request == NULL) {
+        controller->setFailed("request is NULL");
+        return;
+    }
+    Looper *looper = g_tlv.get();
+
+    if (looper == NULL || !looper->is_run()) {
+        InnerRequest inner_request = new InnerRequest();
+        inner_request->set_requst(request);
+        inner_request->response(request);
+        inner_request->set_controller(controller);
+        inner_request->set_method(method);
+
+        if (g_dispatcher[g_index++%g_dispatcher_size].put(request) < 0) {
+            controller->SetFailed("req queue is full!");
+            return;
+        }
+        _inner_request->wait();
+        return;
+    }
+    if (looper != NULL && !looper->is_run()) {
+        controller->SetFailed("looper not run");
+        return;
+    }
+
+    // must in a coroutine
+    const std::string &service_name = 
+        method->service()->full_name();
+    MetaRequest *req = new MetaRequest();
+    req->set_service_name(method->service->name());
+    req->set_method_name(method->full_name());
+    std::string data;
+    if (!request->SerializeToString(data)) {
+        controller->SetFailed("request seriliaze failed!");
+        controller->SetErrCode(ErrCode.PROTO_SERILIZE_FAILED);
+        return;
+    }
+    req->set_data(data);
+    char data2socket[req->ByteSize()];
+    req->SerilizedToArray(data2socket, req->ByteSize());
+    Socket *socket = SocketManager::instance()->
+        get_socket(_service_name);
+    if (!in_couroutine()) {
+        SocketUD sud = new SocketUD();
+        sud->socket = socket;
+        sud->data = buf;
+        sud->size = req->ByteSize;
+        int id = coroutine_new(looper, socket_write, sud);
+        co_resume(id);
+    } else {
+        socket->write(buf, req->ByteSize);
+    }
+}
+
+/*
     class Channel {
         public:
             typedef boost::function<void(int)> EventHandler;
             Channel() {
             }
-            /*
             void set_fd(int fd) {
                 _fd = fd;
             }
@@ -30,20 +118,16 @@ namespace lyy {
             void set_ev(epoll_event *ev) {
                 _ev = ev;
             }
-            */
-            /*
             epoll_event *get_ev() {
                 _ev = boost::shared_ptr<epoll_event>(new epoll_event());
                 return _ev.get();
             }
-            */
             void set_event_handler(EventHandler handler) {
                 _handler = handler;
             }
             void handleEvent(int event) {
                 _handler(event);
             }
-                /*
                 if (acceptor) {
                     while (1) {
                         int fd = accept(get_fd(),(sockaddr*)&cliaddr, &len);
@@ -89,14 +173,13 @@ namespace lyy {
                             delete this;
                         }
                     }
-                    */
-                   /* else if (events[i].events & EPOLLERR || events[i].events & EPOLLHUP) {
+                   else if (events[i].events & EPOLLERR || events[i].events & EPOLLHUP) {
                         printf("fd %d port %d error\n", chs->get_fd(), chs->get_port());
                         close(chs->get_fd());
                         delete chs->get_ev();
                         delete chs;
                     }
-                    */
+                    
             
         private:
             //int _fd;
@@ -104,5 +187,6 @@ namespace lyy {
             boost::shared_ptr<Poller> _poller; 
             EventHandler _handler;
     };
+                */
 }
 #endif

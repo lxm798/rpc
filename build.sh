@@ -10,6 +10,7 @@ if [ ! -d './third-lib/gflags' ]; then
     make
     cd ../../..
 fi
+./tool/protoc -I=./include/net/policy/ --cpp_out=./include/net/policy  include/net/proto/*.proto
 set -x
 
 SOURCE_DIR=`pwd`

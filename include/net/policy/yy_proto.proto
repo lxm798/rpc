@@ -1,0 +1,12 @@
+syntax = "proto3";
+package lyy;
+message MetaRequest {
+    string service_name = 1;
+    string method_name  = 2;
+    bytes  data = 3;
+}
+message MetaResponse {
+    int32 errcode = 1;
+    string errmsg = 2;
+    bytes data = 3;
+}

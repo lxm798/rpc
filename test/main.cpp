@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <errno.h>
 
+#include <gflags/gflags.h>
+#include <glog/logging.h>
+
 #include <boost/shared_ptr.hpp>
 namespace lyy {
 int start() {
@@ -12,7 +15,9 @@ int start() {
     return 0;
 }
 }
-int main () {
+int main (int argc, char **argv) {
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
     lyy::start();
     return 0;
 }

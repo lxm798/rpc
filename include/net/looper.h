@@ -13,6 +13,13 @@ namespace lyy {
             Looper(boost::shared_ptr<Poller> poller) {
                 _poller = poller;
             }
+            int inti() {
+                if (init_co_scheduler() < 0) {
+                    WARNING("init co scheduler failed");
+                    return -1;
+                }
+                return 0;
+            }
             void set_poller(boost::shared_ptr<Poller> poller) {
                 _poller = poller;
             }
@@ -29,14 +36,29 @@ namespace lyy {
                     if (ret < 0) {
                         continue ;
                     }
+
                     for (int i=0; i<ret; ++i) {
-                        Channel *chs = (Channel *)events[i].data.ptr;
-                        chs->handleEvent(events[i].events);
+                        Socket *socket = (Channel *)events[i].data.r;
+                        co_yeild(co_schduler(), socket->coid());
                     }
                 }
             }
+
+            schedule * co_scheduler() {
+                return _schedule;
+            }
+
+            int init_co_scheduler() {
+                _schdule = coroutine_open();
+                if (_schdule == NULL) {
+                    WARNING("init co scheduler failed");
+                    return -1;
+                }
+                return 0;
+            }
         private:
             boost::shared_ptr<Poller> _poller;
+            schedule * _schedule;
     };
 }
 #endif
