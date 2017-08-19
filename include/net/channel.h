@@ -7,6 +7,7 @@
 #include <boost/function.hpp>
 #include <google/protobuf/service.h>
 namespace lyy {
+extern Tlv<Looper> g_looper;
 struct ChannelOptions {
     uint32_t timeout_ms;
     uint32_t protocol;
@@ -44,7 +45,7 @@ void Channel::CallMethod(const MethodDescriptor* method,
         controller->setFailed("request is NULL");
         return;
     }
-    Looper *looper = g_tlv.get();
+    Looper *looper = g_looper.get();
 
     if (looper == NULL || !looper->is_run()) {
         InnerRequest inner_request = new InnerRequest();

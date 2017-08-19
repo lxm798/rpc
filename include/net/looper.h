@@ -5,10 +5,15 @@
 #include "net/poller.h"
 #include "net/channel.h"
 namespace lyy {
+    enum STATUS {
+        UNINITIAL,
+        RUN,
+        STOP,
+    };
     class Looper: public boost::noncopyable {
         public:
             Looper() {
-            
+                _status = UNINITIAL;
             }
             Looper(boost::shared_ptr<Poller> poller) {
                 _poller = poller;
@@ -16,9 +21,15 @@ namespace lyy {
             int inti() {
                 if (init_co_scheduler() < 0) {
                     WARNING("init co scheduler failed");
+                    _status = RUN;
                     return -1;
                 }
+                _status = RUN;
                 return 0;
+            }
+
+            bool is_run() {
+                return _status == RUNNING;
             }
             void set_poller(boost::shared_ptr<Poller> poller) {
                 _poller = poller;
@@ -59,6 +70,7 @@ namespace lyy {
         private:
             boost::shared_ptr<Poller> _poller;
             schedule * _schedule;
+            STATUS _status;
     };
 }
 #endif
