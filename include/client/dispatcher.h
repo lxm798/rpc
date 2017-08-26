@@ -1,11 +1,8 @@
 #include <thread>
 
 namespace lyy {
-void request_handler(LockFreeQueue<InnerRequest> * queue) {
-    coroutine_new()
-    InnerRequest *req;
-    while ((req = queue->get()) != NULL) {
-        
+void request_handler(schduler *S, void *ud) {
+    InnerRequest *req = static_cast<InnerRequest*req>(ud);
 // must in a coroutine
     const std::string &service_name = 
         method->service()->full_name();
@@ -21,30 +18,29 @@ void request_handler(LockFreeQueue<InnerRequest> * queue) {
     req->set_data(data);
     char data2socket[req->ByteSize()];
     req->SerilizedToArray(data2socket, req->ByteSize());
-    Socket *socket = SocketManager::instance()->
-    get_socket(_service_name);
-    SocketUD sud = new SocketUD();
-    sud->socket = socket;
-    sud->data = buf;
-    sud->size = req->ByteSize;
+    Socket *socket = SocketManager::instance()->get_socket(_service_name);
+    if (socket->write(data2socket, req->ByteSize) < 0) {
+        return;
+    }
+    if (socket->read(data2socket, ))
+
+}
+void co_main(InnerRequest *req) {
     int id = coroutine_new(looper, socket_write, sud);
     co_resume(id);
 }
-
 void worker_handler() {
-    while (_status != 1 && (req = _request_queue.get()) != NULL) {
-        int id = coroutine_new(g_looper.get_scheduler(),
-                handler_request, req);
-        coroutine_resume(g_looper.get_scheduler(),
-                id);
-        looper.loop();
-    }
+    while (_status != STOPPED) {
+            looper.loop();
+    }        
 }
 class WorkerPool {
-    WorkerPool (int size): _request_queue(1000) {
+    WorkerPool (int size): _request_queue(1000), _index(0), _worker_count(size) {
         worker.resize(size);
     }
     int put(InnerRequest *req) {
+        
+        _worker[_index%_worker_count].post(std::bind(std::function(co_main, req)));
         if (_status == 0) {
             WARNING("worker has stopped");
             return 0;
@@ -67,5 +63,7 @@ private：
     vector<Thread> _worker;
     LockFreeQueue<InnerRequest> _request_queue;    
     int _status;
+    int _index;
+    int _worker_count;
 };
 }

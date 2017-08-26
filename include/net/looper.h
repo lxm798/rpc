@@ -4,6 +4,8 @@
 #include <boost/noncopyable.hpp>
 #include "net/poller.h"
 #include "net/channel.h"
+typedef std::function<void(coroutine_func, InnerRequest*)> PostedFunction;
+typedef std::function<void()> PendingFunction;
 namespace lyy {
     enum STATUS {
         UNINITIAL,
@@ -38,6 +40,10 @@ namespace lyy {
             int post(int fd, epoll_event* ev) {
                 return _poller->add(fd , ev);
             }
+            void post(PendingFunction function) {
+                    _pending_fucntions.put(function);
+            }
+            void 
             void loop() {
                 struct epoll_event events[200];
                 int ret;
@@ -52,6 +58,10 @@ namespace lyy {
                         Socket *socket = (Channel *)events[i].data.r;
                         co_yeild(co_schduler(), socket->coid());
                     }
+                }
+                PostedFunction func;
+                while ((func = _pending_functions.get()) != NULL) {
+                    func();
                 }
             }
 
@@ -71,6 +81,7 @@ namespace lyy {
             boost::shared_ptr<Poller> _poller;
             schedule * _schedule;
             STATUS _status;
+            LockFreeQueue<PendingFunction> _pending_functions;
     };
 }
 #endif
