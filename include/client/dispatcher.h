@@ -36,7 +36,16 @@ void worker_handler() {
 }
 class WorkerPool {
     WorkerPool (int size): _request_queue(1000), _index(0), _worker_count(size) {
-        worker.resize(size);
+    }
+    int init() {
+        int size = worker.size();
+        for (int i=0; i < size; ++i) {
+            boost::shared_ptr<Poller> poller = new Poller();
+            poller.init();
+            Looper *looper = new Looper(poller);
+            looper->init();
+            worker.push_back(Thread(bind(&looper::loop, Looper)));
+        }
     }
     int put(InnerRequest *req) {
         

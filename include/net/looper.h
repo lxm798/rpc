@@ -26,6 +26,13 @@ namespace lyy {
                     _status = RUN;
                     return -1;
                 }
+                pipe(fds);
+                epoll_event ev = new epoll_event();
+                ev->events = EPOLLET|EPOLLIN; 
+                Socket socket = new Socket();
+                socket->set_fd(fds[0]);
+                ev->data.ptr = socket;
+                _poller.add(fds[0], ev);
                 _status = RUN;
                 return 0;
             }
@@ -38,12 +45,13 @@ namespace lyy {
             }
 
             int post(int fd, epoll_event* ev) {
-                return _poller->add(fd , ev);
+                _poller->add(fd , ev);
             }
             void post(PendingFunction function) {
-                    _pending_fucntions.put(function);
+                _pending_fucntions.put(function);
+                char a;
+                write(fds[1], &a, 1);
             }
-            void 
             void loop() {
                 struct epoll_event events[200];
                 int ret;
@@ -56,7 +64,12 @@ namespace lyy {
 
                     for (int i=0; i<ret; ++i) {
                         Socket *socket = (Channel *)events[i].data.r;
+                        if (socket->coid() == 0) {
+                            char ch;
+                            socket->read(&ch,1);   
+                        } else {
                         co_yeild(co_schduler(), socket->coid());
+                        }
                     }
                 }
                 PostedFunction func;
@@ -82,6 +95,7 @@ namespace lyy {
             schedule * _schedule;
             STATUS _status;
             LockFreeQueue<PendingFunction> _pending_functions;
+            int fd[2];
     };
 }
 #endif
