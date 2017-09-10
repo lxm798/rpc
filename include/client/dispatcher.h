@@ -1,33 +1,37 @@
 #include <thread>
+#include <coroutine.h>
+#include "net/policy/yy_proto.pb.h"
+#include "net/rpccontroller.h"
 
 namespace lyy {
-void request_handler(schduler *S, void *ud) {
-    InnerRequest *req = static_cast<InnerRequest*req>(ud);
+void request_handler(schedule *S, void *ud) {
+    InnerRequest *req = static_cast<InnerRequest *>(ud);
 // must in a coroutine
     const std::string &service_name = 
-        method->service()->full_name();
-    MetaRequest *req = new MetaRequest();
-    req->set_service_name(method->service->name());
-    req->set_method_name(method->full_name());
+        req->method()->service()->full_name();
+    MetaRequest *meta = new MetaRequest();
+    meta->set_service_name(req->method()->service()->name());
+    meta->set_method_name(req->method()->full_name());
     std::string data;
-    if (!request->SerializeToString(data)) {
-        controller->SetFailed("request seriliaze failed!");
-        controller->SetErrCode(ErrCode.PROTO_SERILIZE_FAILED);
+    if (!meta->SerializeToString(&data)) {
+        ((RpcController*)(req->controller()))->SetFailed("request seriliaze failed!");
+        ((RpcController*)(req->controller()))->SetErrCode(PROTO_SERILIZE_FAILED);
         return;
     }
-    req->set_data(data);
-    char data2socket[req->ByteSize()];
-    req->SerilizedToArray(data2socket, req->ByteSize());
-    Socket *socket = SocketManager::instance()->get_socket(_service_name);
-    if (socket->write(data2socket, req->ByteSize) < 0) {
+    meta->set_data(data);
+    char data2socket[meta->ByteSize()];
+    meta->SerializeToArray(data2socket, meta->ByteSize());
+    Socket *socket = SocketManager::instance()->get_socket(service_name);
+    if (socket->write(data2socket, ,meta->ByteSize) < 0) {
         return;
     }
-    if (socket->read(data2socket, ))
+    if (socket->read(data2socket, 8)) {
+    }
 
 }
 void co_main(InnerRequest *req) {
-    int id = coroutine_new(looper, socket_write, sud);
-    co_resume(id);
+    int id = coroutine_new(g_looper, socket_write, sud);
+    coroutine_resume(g_looper->,id);
 }
 void worker_handler() {
     while (_status != STOPPED) {
@@ -35,6 +39,8 @@ void worker_handler() {
     }        
 }
 class WorkerPool {
+puiblic:
+    
     WorkerPool (int size): _request_queue(1000), _index(0), _worker_count(size) {
     }
     int init() {
@@ -68,7 +74,7 @@ class WorkerPool {
             beg->p
         } 
     }
-private：
+private:
     vector<Thread> _worker;
     LockFreeQueue<InnerRequest> _request_queue;    
     int _status;

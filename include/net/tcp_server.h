@@ -10,7 +10,6 @@
 #include <boost/bind.hpp>
 
 #include "net/poller.h"
-#include "net/channel.h"
 #include "net/looper.h"
 #include "net/acceptor.h"
 

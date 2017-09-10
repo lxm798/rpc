@@ -1,16 +1,15 @@
 #include "net/rpccontroller.h"
-#include "utils/errcode.h"
 namespace lyy {
-    bool RpcController::Reset() {
-        _errcode = ErrCode.OK;
+    void RpcController::Reset() {
+        _errcode = OK;
         SetFailed("");
     }
 
     bool RpcController::Failed() const {
-        return _errcode != ErroCode.OK;
+        return _errcode == OK;
     }
 
-    void RpcContoller::SetFailed(const string &reason) {
+    void RpcController::SetFailed(const string &reason) {
         _err_string.assign(reason);
     }
 
@@ -23,15 +22,15 @@ namespace lyy {
         return;
     }
 
-    bool RpcController::IsCanceled() {
+    bool RpcController::IsCanceled() const {
         return _canceled == 1;
     }
 
-    void RpcController::NotifyOnCancel(Closure* callback) {
+    void RpcController::NotifyOnCancel(::google::protobuf::Closure* callback) {
         return;
     }
 
-    void RpcController::SetErrCode(ErrCode errcode) {
+    void RpcController::SetErrCode(::lyy::ErrCode errcode) {
         _errcode = errcode;
     }
 

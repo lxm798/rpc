@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include "net/poller.h"
 #include "net/channel.h"
-#include "net/socket"
+#include "net/socket.h"
 namespace lyy {
     struct SocketProcessInfo {
         Socket *socket;
@@ -83,16 +83,12 @@ namespace lyy {
                 printf("client connect client port:%d\n", cliaddr.sin_port);
                 // 是否可以传递局部变量
                 epoll_event * ev = new epoll_event();
-                Channel *chs = new Channel();
                 Socket *s = new Socket(fd);
                 SocketProcessInfo *spi = new SocketProcessInfo();
                 spi->socket = s;
                 spi->protocol = new HeaderProtocol; 
                 int id = coroutine_new(looper->co_scheduler(), co_process, new SocketProcessInfo) ;
                 s->set_coroutineid(id);
-                //chs->set_fd(fd);
-                //chs->set_port(cliaddr.sin_port);
-                // chs->set_event_handler(boost::bind(co_resume, )));
                 ev->events = EPOLLET|EPOLLIN;
                 ev->data.ptr = (int*)id;
                 _poller->add(fd, ev);

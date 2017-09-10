@@ -4,7 +4,7 @@ namespace lyy {
     enum ErrCode {
         OK = 0,
         UNKNOWN = 1,
-        PROTO_SERILIZE_FAILED = 10;
+        PROTO_SERILIZE_FAILED = 10,
     };
 } // namespace lyy
 #endif

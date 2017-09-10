@@ -6,8 +6,17 @@
 #include "net/poller.h"
 #include <boost/function.hpp>
 #include <google/protobuf/service.h>
+#include "net/socket.h"
+#include "utils/tlv.h"
+#include "net/looper.h"
+#include "net/inner_request.h"
+#include "yy_proto.pb.h"
 namespace lyy {
+using ::google::protobuf::MethodDescriptor;
+using ::google::protobuf::Message;
+using ::google::protobuf::Closure;
 extern Tlv<Looper> g_looper;
+extern WorkerPool g_dispatcher;
 struct ChannelOptions {
     uint32_t timeout_ms;
     uint32_t protocol;
@@ -27,7 +36,7 @@ public:
     }
 
     virtual void CallMethod(const MethodDescriptor* method,
-                          RpcController* controller,
+                          ::google::protobuf::RpcController* controller,
                           const Message* request,
                           Message* response,
                           Closure* done);
@@ -37,24 +46,24 @@ private:
 };
 
 void Channel::CallMethod(const MethodDescriptor* method,
-                          RpcController* controller,
+                          ::google::protobuf::RpcController* controller,
                           const Message* request,
                           Message* response,
                           Closure* done) {
     if (request == NULL) {
-        controller->setFailed("request is NULL");
+        controller->SetFailed("request is NULL");
         return;
     }
     Looper *looper = g_looper.get();
 
     if (looper == NULL || !looper->is_run()) {
-        InnerRequest inner_request = new InnerRequest();
-        inner_request->set_requst(request);
-        inner_request->response(request);
+        InnerRequest *inner_request = new InnerRequest();
+        inner_request->set_reqeust(request);
+        inner_request->response(response);
         inner_request->set_controller(controller);
         inner_request->set_method(method);
 
-        if (g_dispatcher[g_index++%g_dispatcher_size].put(request) < 0) {
+        if (g_dispatcher.put(request) < 0) {
             controller->SetFailed("req queue is full!");
             return;
         }
@@ -94,7 +103,7 @@ void Channel::CallMethod(const MethodDescriptor* method,
         socket->write(buf, req->ByteSize);
     }
 }
-
+}
 /*
     class Channel {
         public:
@@ -189,5 +198,4 @@ void Channel::CallMethod(const MethodDescriptor* method,
             EventHandler _handler;
     };
                 */
-}
 #endif

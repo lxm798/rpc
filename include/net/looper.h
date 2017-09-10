@@ -3,10 +3,13 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 #include "net/poller.h"
-#include "net/channel.h"
-typedef std::function<void(coroutine_func, InnerRequest*)> PostedFunction;
-typedef std::function<void()> PendingFunction;
+#include "utils/macros.h"
+#include <coroutine.h>
+#include "net/inner_request.h"
+#include "lock_free/queue.h"
+#include "socket.h"
 namespace lyy {
+typedef std::function<void()> PendingFunction;
     enum STATUS {
         UNINITIAL,
         RUN,
@@ -26,31 +29,31 @@ namespace lyy {
                     _status = RUN;
                     return -1;
                 }
-                pipe(fds);
-                epoll_event ev = new epoll_event();
+                pipe(_fds);
+                epoll_event *ev = new epoll_event();
                 ev->events = EPOLLET|EPOLLIN; 
-                Socket socket = new Socket();
-                socket->set_fd(fds[0]);
+                Socket *socket = new Socket();
+                socket->set_fd(_fds[0]);
                 ev->data.ptr = socket;
-                _poller.add(fds[0], ev);
+                _poller->add(_fds[0], ev);
                 _status = RUN;
                 return 0;
             }
 
             bool is_run() {
-                return _status == RUNNING;
+                return _status == RUN;
             }
             void set_poller(boost::shared_ptr<Poller> poller) {
                 _poller = poller;
             }
 
             int post(int fd, epoll_event* ev) {
-                _poller->add(fd , ev);
+                return _poller->add(fd , ev);
             }
             void post(PendingFunction function) {
-                _pending_fucntions.put(function);
+                _pending_functions.put(function);
                 char a;
-                write(fds[1], &a, 1);
+                write(_fds[1], &a, 1);
             }
             void loop() {
                 struct epoll_event events[200];
@@ -63,16 +66,16 @@ namespace lyy {
                     }
 
                     for (int i=0; i<ret; ++i) {
-                        Socket *socket = (Channel *)events[i].data.r;
-                        if (socket->coid() == 0) {
+                        Socket *socket = (Socket *)events[i].data.ptr;
+                        if (socket->coroutineid() == 0) {
                             char ch;
                             socket->read(&ch,1);   
                         } else {
-                        co_yeild(co_schduler(), socket->coid());
+                        coroutine_resume(co_scheduler(), socket->coroutineid());
                         }
                     }
                 }
-                PostedFunction func;
+                PendingFunction func;
                 while ((func = _pending_functions.get()) != NULL) {
                     func();
                 }
@@ -83,8 +86,8 @@ namespace lyy {
             }
 
             int init_co_scheduler() {
-                _schdule = coroutine_open();
-                if (_schdule == NULL) {
+                _schedule = coroutine_open();
+                if (_schedule == NULL) {
                     WARNING("init co scheduler failed");
                     return -1;
                 }
@@ -94,8 +97,8 @@ namespace lyy {
             boost::shared_ptr<Poller> _poller;
             schedule * _schedule;
             STATUS _status;
-            LockFreeQueue<PendingFunction> _pending_functions;
-            int fd[2];
+            TLockFreeQueue<PendingFunction> _pending_functions;
+            int _fds[2];
     };
 }
 #endif

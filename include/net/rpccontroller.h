@@ -2,6 +2,9 @@
 #define LYY_NET_RPCCONTROLLER_H
 #include <google/protobuf/service.h>
 #include <string>
+#include <utils/errcode.h>
+#include <google/protobuf/stubs/common.h>
+#include "utils/errcode.h"
 using std::string;
 namespace lyy {
 class RpcController : public ::google::protobuf::RpcController {
@@ -21,11 +24,11 @@ public:
 
     virtual bool IsCanceled() const;
 
-    virtual void NotifyOnCancel(Closure* callback);
+    virtual void NotifyOnCancel(::google::protobuf::Closure* callback);
 
-    virtual void SetErrCode(ErrCode errcode);
+    virtual void SetErrCode(::lyy::ErrCode errcode);
 
-    virtual void ErrCode(ErrCode errcode);
+    virtual int ErrCode() const;
 
 private:
     int _errcode;
@@ -33,6 +36,6 @@ private:
     int _canceled;
 
      
-} // class RpcController
+}; // class RpcController
 } // namespace lyy;
 #endif

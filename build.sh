@@ -1,5 +1,4 @@
 #!/bin/sh
-
 if [ ! -d './third-lib/gflags' ]; then
     cd third-lib/
     git clone https://github.com/gflags/gflags 
@@ -10,7 +9,7 @@ if [ ! -d './third-lib/gflags' ]; then
     make
     cd ../../..
 fi
-./tool/protoc -I=./include/net/policy/ --cpp_out=./include/net/policy  include/net/proto/*.proto
+./tool/protoc -I=./include/net/policy/ --cpp_out=./include/net/policy  include/net/policy/*.proto
 set -x
 
 SOURCE_DIR=`pwd`

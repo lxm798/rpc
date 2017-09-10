@@ -10,7 +10,6 @@
 #include <string>
 namespace lyy {
 class Looper;
-
 class IoBuf {
     public:
         IoBuf() : _buf(NULL), _size(0) {
@@ -23,21 +22,23 @@ class IoBuf {
 
         int write(const char * buf, int size) {
             _str.append(buf, size);
+            return 0;
         }
         const char* get_raw_buf(int &size) {
             size= _str.size();
             return _str.c_str();
         }
         uint32_t size() {
-            return static_cast<uint32_t>(_str.size())
+            return static_cast<uint32_t>(_str.size());
         }
         void remove_first_n(int size) {
-            _str.earse(0, size);
+            _str.erase(0, size);
         }
-        const read
     private:
         std::string _str;
-}
+        char * _buf;
+        uint32_t _size;
+};
 class Socket {
     public:
         Socket();
@@ -52,7 +53,7 @@ class Socket {
         void set_coroutineid(int id);
         int coroutineid();
         const IoBuf * iobuf() {
-            return iobuf;
+            return _iobuf;
         }
     protected:
         int _fd;
@@ -60,7 +61,7 @@ class Socket {
         int _r_cnt;
         int _w_cnt;
         int _co_id;
-        IoBuf *_buf;
+        IoBuf *_iobuf;
 };
 
 class Tcp4Socket : public Socket {
