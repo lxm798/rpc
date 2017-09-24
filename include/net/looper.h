@@ -1,6 +1,6 @@
 #ifndef LYY_NET_LOOP_H
 #define LYY_NET_LOOP_H
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/noncopyable.hpp>
 #include "net/poller.h"
 #include "utils/macros.h"
@@ -20,10 +20,10 @@ typedef std::function<void()> PendingFunction;
             Looper() {
                 _status = UNINITIAL;
             }
-            Looper(boost::shared_ptr<Poller> poller) {
+            Looper(std::shared_ptr<Poller> poller) {
                 _poller = poller;
             }
-            int inti() {
+            int init() {
                 if (init_co_scheduler() < 0) {
                     WARNING("init co scheduler failed");
                     _status = RUN;
@@ -43,17 +43,17 @@ typedef std::function<void()> PendingFunction;
             bool is_run() {
                 return _status == RUN;
             }
-            void set_poller(boost::shared_ptr<Poller> poller) {
+            void set_poller(std::shared_ptr<Poller> poller) {
                 _poller = poller;
             }
 
             int post(int fd, epoll_event* ev) {
                 return _poller->add(fd , ev);
             }
-            void post(PendingFunction function) {
+            int post(PendingFunction function) {
                 _pending_functions.put(function);
                 char a;
-                write(_fds[1], &a, 1);
+                return write(_fds[1], &a, 1);
             }
             void loop() {
                 struct epoll_event events[200];
@@ -94,7 +94,7 @@ typedef std::function<void()> PendingFunction;
                 return 0;
             }
         private:
-            boost::shared_ptr<Poller> _poller;
+            std::shared_ptr<Poller> _poller;
             schedule * _schedule;
             STATUS _status;
             TLockFreeQueue<PendingFunction> _pending_functions;

@@ -55,6 +55,7 @@ class Socket {
         const IoBuf * iobuf() {
             return _iobuf;
         }
+        int fd();
     protected:
         int _fd;
         Looper *_looper;

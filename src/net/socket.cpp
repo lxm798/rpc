@@ -8,6 +8,10 @@ Socket::Socket() {
 void Socket::set_coroutineid(int coid) {
     _co_id = coid;
 }
+int Socket::fd() {
+    return _fd;
+}
+
 
 int Socket::coroutineid() {
     return _co_id;

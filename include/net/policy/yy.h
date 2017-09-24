@@ -10,7 +10,7 @@ struct YyHeader {
 
 };
 // return 0 if ok
-int process(char* req_buf, uint32_t len, char **resp_buf, uint32_t &len);
+int proccess(char* req_buf, uint32_t body_len, char **resp_buf, uint32_t &len);
 }
 
 #endif

@@ -9,8 +9,8 @@
 #include <errno.h>
 #include <stdio.h>
 #include "net/poller.h"
-#include "net/channel.h"
 #include "net/socket.h"
+#include "net/policy/protocol.h"
 namespace lyy {
     struct SocketProcessInfo {
         Socket *socket;
@@ -18,7 +18,7 @@ namespace lyy {
     };
     void co_process(schedule * schedule, void *ud) {
         SocketProcessInfo *spi = static_cast<SocketProcessInfo *> (ud);
-        if (spi->protocol->process(ud->socket) < 0) {
+        if (spi->protocol->process(spi->socket) < 0) {
             WARNING("process socket %d failed", spi->socket->fd());
         }
     }
@@ -58,9 +58,6 @@ namespace lyy {
             //TODO extract in utils
             set_socket_nonblock(_fd); 
 
-            Channel *ch = new Channel();
-            ch->set_event_handler(boost::bind(&Acceptor::handleEvent, this, _1));
-            //ch->set_poller(poller);
 
             _ev = boost::shared_ptr<epoll_event>(new epoll_event());
             epoll_event * ev = _ev.get();
@@ -95,7 +92,6 @@ namespace lyy {
             }
 		}
 		private:
-            Channel *_ch;
             int _fd;
             FdEventHandler _handler;
             ::sockaddr_in cliaddr;

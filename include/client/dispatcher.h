@@ -1,9 +1,12 @@
 #include <thread>
 #include <coroutine.h>
+#include <memory>
 #include "net/policy/yy_proto.pb.h"
 #include "net/rpccontroller.h"
+#include "net/socket_manager.h"
 
 namespace lyy {
+extern Tlv<Looper> g_looper;
 void request_handler(schedule *S, void *ud) {
     InnerRequest *req = static_cast<InnerRequest *>(ud);
 // must in a coroutine
@@ -22,61 +25,46 @@ void request_handler(schedule *S, void *ud) {
     char data2socket[meta->ByteSize()];
     meta->SerializeToArray(data2socket, meta->ByteSize());
     Socket *socket = SocketManager::instance()->get_socket(service_name);
-    if (socket->write(data2socket, ,meta->ByteSize) < 0) {
+    if (socket->write(data2socket, meta->ByteSize()) < 0) {
         return;
     }
     if (socket->read(data2socket, 8)) {
     }
-
 }
 void co_main(InnerRequest *req) {
-    int id = coroutine_new(g_looper, socket_write, sud);
-    coroutine_resume(g_looper->,id);
-}
-void worker_handler() {
-    while (_status != STOPPED) {
-            looper.loop();
-    }        
+    int id = coroutine_new(g_looper->co_scheduler(), request_handler, req);
+    coroutine_resume(g_looper->co_scheduler(), id);
 }
 class WorkerPool {
-puiblic:
+public:
     
-    WorkerPool (int size): _request_queue(1000), _index(0), _worker_count(size) {
+    WorkerPool (int size): _index(0), _worker_count(size) {
     }
     int init() {
-        int size = worker.size();
+        int size = _worker.size();
         for (int i=0; i < size; ++i) {
-            boost::shared_ptr<Poller> poller = new Poller();
-            poller.init();
+            std::shared_ptr<Poller> poller = std::shared_ptr<Poller>(new Poller());
+            poller->init();
             Looper *looper = new Looper(poller);
             looper->init();
-            worker.push_back(Thread(bind(&looper::loop, Looper)));
+            _loopers.push_back(std::shared_ptr<Looper>(looper));
+            _worker.push_back(std::thread(std::bind(&Looper::loop, looper)));
         }
+        return 0;
     }
     int put(InnerRequest *req) {
-        
-        _worker[_index%_worker_count].post(std::bind(std::function(co_main, req)));
-        if (_status == 0) {
-            WARNING("worker has stopped");
-            return 0;
-        }
-        if (req == NULL) {
-            WARNING("req is null");
-            return -1;
-        }
-        _request_queue.put(req);
-        return 0;
+        return _loopers[_index%_worker_count]->post(std::bind(co_main, req));
     }
     void stop() {
         auto beg = _worker.begin();
         auto end = _worker.end();
         while (beg != end) {
-            beg->p
+            beg->join();
         } 
     }
 private:
-    vector<Thread> _worker;
-    LockFreeQueue<InnerRequest> _request_queue;    
+    vector<std::thread> _worker;
+    vector<std::shared_ptr<Looper> > _loopers;
     int _status;
     int _index;
     int _worker_count;
