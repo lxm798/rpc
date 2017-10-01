@@ -1,6 +1,5 @@
 namespace lyy {
-class Event {
-    int handleEvent(int event);
-    std::function<void(int)> f
+class Handler {
+    std::function<void(int)> _handler;
 };
 }

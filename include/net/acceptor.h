@@ -11,6 +11,8 @@
 #include "net/poller.h"
 #include "net/socket.h"
 #include "net/policy/protocol.h"
+#include "net/handler.h"
+#include<functional>
 namespace lyy {
     struct SocketProcessInfo {
         Socket *socket;
@@ -61,6 +63,8 @@ namespace lyy {
 
             _ev = boost::shared_ptr<epoll_event>(new epoll_event());
             epoll_event * ev = _ev.get();
+            Handler *handler = new Handler();
+            handler->_handler = std::bind(&Acceptor::handleEvent, *this,std::placeholders::_1);
             ev->events = EPOLLIN|EPOLLET;
             ev->data.ptr = ch;
             poller->add(_fd, ev);

@@ -34,6 +34,8 @@ typedef std::function<void()> PendingFunction;
                 ev->events = EPOLLET|EPOLLIN; 
                 Socket *socket = new Socket();
                 socket->set_fd(_fds[0]);
+                Handler *handler = new Handler();
+                handler->_handler = [];
                 ev->data.ptr = socket;
                 _poller->add(_fds[0], ev);
                 _status = RUN;
@@ -66,7 +68,9 @@ typedef std::function<void()> PendingFunction;
                     }
 
                     for (int i=0; i<ret; ++i) {
-                        Socket *socket = (Socket *)events[i].data.ptr;
+
+                        Handler *handler = (Handler *)events[i].data.ptr;
+                        handler->_handler(event[i].events);
                         if (socket->coroutineid() == 0) {
                             char ch;
                             socket->read(&ch,1);   
