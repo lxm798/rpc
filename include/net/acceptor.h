@@ -64,7 +64,7 @@ namespace lyy {
             _ev = boost::shared_ptr<epoll_event>(new epoll_event());
             epoll_event * ev = _ev.get();
             Handler *handler = new Handler();
-            handler->_handler = std::bind(&Acceptor::handleEvent, *this,std::placeholders::_1);
+            handler->_handler = std::bind(&Acceptor::handleEvent, *this, std::placeholders::_1);
             ev->events = EPOLLIN|EPOLLET;
             ev->data.ptr = ch;
             poller->add(_fd, ev);

@@ -2,6 +2,7 @@
 #define LYY_NET_HANDLER_H
 namespace lyy {
 class Handler {
+    function<>
     int handler(int fd, event);
 };
 
