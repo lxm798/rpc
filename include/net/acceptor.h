@@ -61,7 +61,7 @@ namespace lyy {
             Handler *handler = new Handler();
             handler->_handler = std::bind(&Acceptor::handleEvent, *this, std::placeholders::_1);
             ev->events = EPOLLIN|EPOLLET;
-            ev->data.ptr = ch;
+            ev->data.ptr = handler;
             poller->add(_fd, ev);
             _poller = poller;
         }
@@ -79,14 +79,21 @@ namespace lyy {
                 printf("client connect client port:%d\n", cliaddr.sin_port);
                 // 是否可以传递局部变量
                 epoll_event * ev = new epoll_event();
-                Socket *s = new Socket(fd);
+                Socket *s = new Socket();
+                if (s == NULL) {
+                    FATAL("new socket is null");
+                    return;
+                }
+                s->set_fd(fd);
                 SocketProcessInfo *spi = new SocketProcessInfo();
                 spi->socket = s;
-                spi->protocol = new HeaderProtocol; 
+                spi->protocol = new HeaderProtocol<YyHeader>(); 
                 int id = coroutine_new(looper->co_scheduler(), co_process, new SocketProcessInfo) ;
-                s->set_coroutineid(id);
+                s->set_coroutineid(id
                 ev->events = EPOLLET|EPOLLIN;
-                ev->data.ptr = (int*)id;
+                Handler *handler = new Handler();
+                handler->_handler = std::bind(coroutine_resume, looper->co_scheduler(), id);
+                ev->data.ptr = static_cast<int*>(id);
                 _poller->add(fd, ev);
             }
 		}
