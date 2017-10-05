@@ -9,7 +9,16 @@ if [ ! -d './third-lib/gflags' ]; then
     make
     cd ../../..
 fi
-./tool/protoc -I=./include/net/policy/ --cpp_out=./include/net/policy  include/net/policy/*.proto
+if [ ! -d './third-lib/glog' ]; then
+    cd third-lib/
+    mkdir -p glog
+    cd glog
+    git clone https://github.com/google/glog.git ./
+    cmake ./
+    cd ../..
+fi
+#./tool/protoc -I=./include/net/policy/ --cpp_out=./include/net/policy  include/net/policy/*.proto
+protoc -I=./include/net/policy/ --cpp_out=./include/net/policy  include/net/policy/*.proto
 set -x
 
 SOURCE_DIR=`pwd`
