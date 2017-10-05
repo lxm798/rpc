@@ -23,13 +23,12 @@ namespace lyy {
 
         int start() {
             _acceptor = boost::shared_ptr<Acceptor>(new Acceptor(_ip, _port));
-            _acceptor->setEventHandler(boost::bind(&TcpServer::handleFdEvent, this,_1,_2));
             _acceptor->init(_poller);
             _looper.loop();
             return 0;
         }
 
-
+/*
         void handleFdEvent(int fd, int event) {
             if (event & EPOLLIN) {
                     ssize_t n = 0;
@@ -55,16 +54,14 @@ namespace lyy {
                         perror("error");
                     }
                     //TODO memory leak for not delete channel and event
-            }
-               /* else if (events[i].events & EPOLLERR || events[i].events & EPOLLHUP) {
+            } else if (events[i].events & EPOLLERR || events[i].events & EPOLLHUP) {
                     printf("fd %d port %d error\n", chs->get_fd(), chs->get_port());
                     close(chs->get_fd());
                     delete chs->get_ev();
                     delete chs;
                 }
-                */
-
         }
+*/
         private:
             std::string _ip;
             uint16_t _port;

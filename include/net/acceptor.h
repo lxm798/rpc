@@ -11,7 +11,7 @@
 #include "net/poller.h"
 #include "net/socket.h"
 #include "net/policy/protocol.h"
-#include "net/handler.h"
+#include "net/event.h"
 #include<functional>
 namespace lyy {
     struct SocketProcessInfo {
@@ -35,9 +35,6 @@ namespace lyy {
         }
         void setWriteCb() {
         }
-        void setEventHandler(FdEventHandler handler) {
-            _handler = handler;
-        }
         int Listen(const char * /*ip*/, uint16_t port) {
             int listenfd = ::socket(AF_INET, SOCK_STREAM, 0);
             ::sockaddr_in serveraddr;
@@ -59,8 +56,6 @@ namespace lyy {
             set_socket_nonblock(_fd); 
             //TODO extract in utils
             set_socket_nonblock(_fd); 
-
-
             _ev = boost::shared_ptr<epoll_event>(new epoll_event());
             epoll_event * ev = _ev.get();
             Handler *handler = new Handler();
@@ -97,7 +92,6 @@ namespace lyy {
 		}
 		private:
             int _fd;
-            FdEventHandler _handler;
             ::sockaddr_in cliaddr;
             ::socklen_t len;
             boost::shared_ptr<epoll_event> _ev;

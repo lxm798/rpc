@@ -8,6 +8,7 @@
 #include "net/inner_request.h"
 #include "lock_free/queue.h"
 #include "net/socket.h"
+#include "net/event.h"
 namespace lyy {
 typedef std::function<void()> PendingFunction;
     enum STATUS {
@@ -35,8 +36,12 @@ typedef std::function<void()> PendingFunction;
                 Socket *socket = new Socket();
                 socket->set_fd(_fds[0]);
                 Handler *handler = new Handler();
-                handler->_handler = [];
-                ev->data.ptr = socket;
+                auto f = [] (Socket *s, int event) {
+                    char buf;
+                    s->read(&buf, 1);
+                };
+                handler->_handler = bind(f, socket, std::placeholders::_1);
+                ev->data.ptr = handler;
                 _poller->add(_fds[0], ev);
                 _status = RUN;
                 return 0;
@@ -70,13 +75,15 @@ typedef std::function<void()> PendingFunction;
                     for (int i=0; i<ret; ++i) {
 
                         Handler *handler = (Handler *)events[i].data.ptr;
-                        handler->_handler(event[i].events);
+                        handler->_handler(events[i].events);
+                        /*
                         if (socket->coroutineid() == 0) {
                             char ch;
                             socket->read(&ch,1);   
                         } else {
                         coroutine_resume(co_scheduler(), socket->coroutineid());
                         }
+                        */
                     }
                 }
                 PendingFunction func;
