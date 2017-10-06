@@ -36,11 +36,11 @@ typedef std::function<void()> PendingFunction;
                 Socket *socket = new Socket();
                 socket->set_fd(_fds[0]);
                 Handler *handler = new Handler();
-                auto f = [] (Socket *s, int event) {
+                auto f = [] (Socket *s) {
                     char buf;
                     s->read(&buf, 1);
                 };
-                handler->_handler = bind(f, socket, std::placeholders::_1);
+                handler->_input_handler = std::bind(f, socket);
                 ev->data.ptr = handler;
                 _poller->add(_fds[0], ev);
                 _status = RUN;
@@ -73,9 +73,15 @@ typedef std::function<void()> PendingFunction;
                     }
 
                     for (int i=0; i<ret; ++i) {
-
+                        int event = events[i].events;
                         Handler *handler = (Handler *)events[i].data.ptr;
-                        handler->_handler(events[i].events);
+                        if (event & EPOLLIN) {
+                            handler->_input_handler();    
+                        } else if (event & EPOLLOUT) {
+                            handler->_output_handler();
+                        } else {
+                           handler->_close_handler(); 
+                        }
                         /*
                         if (socket->coroutineid() == 0) {
                             char ch;

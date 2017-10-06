@@ -1,7 +1,5 @@
 #ifndef LYY_NET_ACCEPTOR_H
 #define LYY_NET_ACCEPTOR_H
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -12,7 +10,7 @@
 #include "net/socket.h"
 #include "net/policy/protocol.h"
 #include "net/event.h"
-#include<functional>
+#include <functional>
 namespace lyy {
     struct SocketProcessInfo {
         Socket *socket;
@@ -27,8 +25,6 @@ namespace lyy {
 
 	class Acceptor {
         public:
-        typedef boost::function<void(int)> EventHandler;
-        typedef boost::function<void(int, int)> FdEventHandler;
 		Acceptor(std::string ip, uint16_t port): _ip(ip), _port(port){
 		}
         void setReadCb() {
@@ -51,21 +47,21 @@ namespace lyy {
             return fcntl(fd, F_SETFL, O_NONBLOCK);
         }
 
-        void init(boost::shared_ptr<Poller> poller) {
+        void init(std::shared_ptr<Looper> looper) {
             _fd = Listen(NULL, _port);
             set_socket_nonblock(_fd); 
             //TODO extract in utils
             set_socket_nonblock(_fd); 
-            _ev = boost::shared_ptr<epoll_event>(new epoll_event());
+            _ev = std::shared_ptr<epoll_event>(new epoll_event());
             epoll_event * ev = _ev.get();
             Handler *handler = new Handler();
-            handler->_handler = std::bind(&Acceptor::handleEvent, *this, std::placeholders::_1);
-            ev->events = EPOLLIN|EPOLLET;
+            handler->_input_handler = std::bind(&Acceptor::acceptFd, *this);
+            ev->events = EPOLLIN | EPOLLET;
             ev->data.ptr = handler;
-            poller->add(_fd, ev);
-            _poller = poller;
+            looper->post(_fd, ev);
+            _looper = looper;
         }
-		void handleEvent(int event) {
+		void acceptFd() {
             while (1) {
                 int fd = accept(_fd,(sockaddr*)&cliaddr, &len);
                 if (fd == EAGAIN) {
@@ -88,22 +84,22 @@ namespace lyy {
                 SocketProcessInfo *spi = new SocketProcessInfo();
                 spi->socket = s;
                 spi->protocol = new HeaderProtocol<YyHeader>(); 
-                int id = coroutine_new(looper->co_scheduler(), co_process, new SocketProcessInfo) ;
-                s->set_coroutineid(id
-                ev->events = EPOLLET|EPOLLIN;
+                int id = coroutine_new(_looper->co_scheduler(), co_process, spi);
+                s->set_coroutineid(id);
+                ev->events = EPOLLET | EPOLLIN | EPOLLOUT;
                 Handler *handler = new Handler();
-                handler->_handler = std::bind(coroutine_resume, looper->co_scheduler(), id);
-                ev->data.ptr = static_cast<int*>(id);
-                _poller->add(fd, ev);
+                handler->_input_handler = std::bind(coroutine_resume, _looper->co_scheduler(), id);
+                handler->_output_handler = std::bind(coroutine_resume, _looper->co_scheduler(), id);
+                ev->data.ptr = handler;
+                _looper->post(fd, ev);
             }
 		}
 		private:
             int _fd;
             ::sockaddr_in cliaddr;
             ::socklen_t len;
-            boost::shared_ptr<epoll_event> _ev;
-            boost::shared_ptr<Poller> _poller;
-
+            std::shared_ptr<epoll_event> _ev;
+            std::shared_ptr<Looper> _looper;
             std::string _ip;
             uint16_t _port;
 	};

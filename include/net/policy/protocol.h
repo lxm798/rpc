@@ -7,6 +7,7 @@
 #include "net/policy/yy_proto.pb.h"
 #include "net/service_factory.h"
 namespace lyy {
+int process (char *buf, uint32_t body_len, char** resp_buf, uint32_t &len);
 struct Protocol {
     virtual int process(Socket *socket) = 0;
 };
@@ -15,11 +16,11 @@ class HeaderProtocol : public Protocol {
 public:
    int process(Socket *socket) {
        Header header;
-       int ret = process_header(socket, header);
+       int ret = process_header(socket, &header);
        if (ret != 0) {
            return ret;
        }
-       return process_body(socket, header);
+       return process_body(socket, &header);
    }
 protected:
    int process_header(Socket *socket, Header* header);
@@ -51,14 +52,14 @@ int HeaderProtocol<YyHeader>::process_body(Socket *socket, YyHeader *header) {
     if (socket->read(req_buf, header->body_len) < static_cast<int>(header->body_len)) {
         return -1;
     }
-    char ** resp_buf;
+    char ** resp_buf = NULL;
     uint32_t len;
     // avoid write sync of several resp_buf 
-    ::lyy::proccess(req_buf, header->body_len, resp_buf, len);
-    socket->write(*resp_buf, len);
+    ::lyy::process(req_buf, header->body_len, resp_buf, len);
+    return socket->write(*resp_buf, len);
 }
 
-int proccess (char *buf, uint32_t body_len, char** resp_buf, uint32_t &len) {
+int process (char *buf, uint32_t body_len, char** resp_buf, uint32_t &len) {
    MetaRequest *meta_req = new MetaRequest(); 
     meta_req->ParseFromArray(buf, body_len);
     const std::string & service_name = meta_req->service_name();

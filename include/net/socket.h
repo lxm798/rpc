@@ -46,7 +46,7 @@ class Socket {
         int set_looper(Looper *loop);
         int connect();
         int read(char *buf, int size);
-        int write(char *buf, int size);
+        int write(const char *buf, int size);
         int close();
         int checkAlive();
         int checkAliveAsync();
@@ -78,7 +78,7 @@ class Tcp4Socket : public Socket {
 
         int read(char* buf, int size);
 
-        int write(char* buf, int size);
+        int write(const char* buf, int size);
 
         int close();
 

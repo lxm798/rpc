@@ -3,7 +3,9 @@
 namespace lyy {
 class Handler {
 public:
-    std::function<void(int)> _handler;
+    std::function<void()> _input_handler;
+    std::function<void()> _output_handler;
+    std::function<void()> _close_handler;
 };
 }
 #endif

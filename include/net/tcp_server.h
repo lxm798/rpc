@@ -7,7 +7,7 @@
 #include <strings.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <boost/bind.hpp>
+#include <memory>
 
 #include "net/poller.h"
 #include "net/looper.h"
@@ -22,8 +22,8 @@ namespace lyy {
         }
 
         int start() {
-            _acceptor = boost::shared_ptr<Acceptor>(new Acceptor(_ip, _port));
-            _acceptor->init(_poller);
+            _acceptor = std::shared_ptr<Acceptor>(new Acceptor(_ip, _port));
+            _acceptor->init(std::shared_ptr<Looper>(&_looper));
             _looper.loop();
             return 0;
         }
@@ -66,8 +66,8 @@ namespace lyy {
             std::string _ip;
             uint16_t _port;
             char buf[1025];
-            boost::shared_ptr<Acceptor> _acceptor;
-            boost::shared_ptr<Poller> _poller;
+            std::shared_ptr<Acceptor> _acceptor;
+            std::shared_ptr<Poller> _poller;
             Looper _looper;
     };
 }
