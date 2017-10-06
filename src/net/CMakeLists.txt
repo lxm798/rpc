@@ -6,7 +6,7 @@ find_package(glog 0.3.5 REQUIRED)
 #target_link_libraries(reactor pthread coroutine glog::glog)
 
 add_library(reactor11 ${SRCS})
-target_link_libraries(reactor11 pthread coroutine glog::glog)
+target_link_libraries(reactor11 pthread coroutine glog::glog protocol)
 set_target_properties(reactor11 PROPERTIES COMPILE_FLAGS "-std=c++0x")
 
 #install(TARGETS reactor DESTINATION lib)

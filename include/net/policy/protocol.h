@@ -4,7 +4,7 @@
 #include "yy.h"
 #include "net/socket.h"
 #include "utils/macros.h"
-#include "net/policy/yy_proto.pb.h"
+#include "yy_proto.pb.h"
 #include "net/service_factory.h"
 namespace lyy {
 int process (char *buf, uint32_t body_len, char** resp_buf, uint32_t &len);

@@ -1,7 +1,7 @@
 #include <thread>
 #include <coroutine.h>
 #include <memory>
-#include "net/policy/yy_proto.pb.h"
+#include "yy_proto.pb.h"
 #include "net/rpccontroller.h"
 #include "net/socket_manager.h"
 
