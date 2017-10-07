@@ -2,7 +2,7 @@ include_directories(${PROJECT_BINARY_DIR})
 set(SRCS
     main.cpp)
 add_executable(exe ${SRCS})
-target_link_libraries(exe reactor11 gflags protobuf coroutine)
+target_link_libraries(exe gflags protobuf coroutine reactor11)
 set_target_properties(exe PROPERTIES COMPILE_FLAGS "-std=c++0x")
 
 set(queue
