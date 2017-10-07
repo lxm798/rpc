@@ -39,7 +39,7 @@ struct coroutine {
 
 struct coroutine * 
 _co_new(struct schedule *S , coroutine_func func, void *ud) {
-	struct coroutine * co = malloc(sizeof(*co));
+	struct coroutine * co = (coroutine*) malloc(sizeof(*co));
 	co->func = func;
 	co->ud = ud;
 	co->sch = S;
@@ -58,11 +58,11 @@ _co_delete(struct coroutine *co) {
 
 struct schedule * 
 coroutine_open(void) {
-	struct schedule *S = malloc(sizeof(*S));
+	struct schedule *S = (schedule*) malloc(sizeof(*S));
 	S->nco = 0;
 	S->cap = DEFAULT_COROUTINE;
 	S->running = -1;
-	S->co = malloc(sizeof(struct coroutine *) * S->cap);
+	S->co = (coroutine**) malloc(sizeof(struct coroutine *) * S->cap);
 	memset(S->co, 0, sizeof(struct coroutine *) * S->cap);
 	return S;
 }
@@ -86,7 +86,7 @@ coroutine_new(struct schedule *S, coroutine_func func, void *ud) {
 	struct coroutine *co = _co_new(S, func , ud);
 	if (S->nco >= S->cap) {
 		int id = S->cap;
-		S->co = realloc(S->co, S->cap * 2 * sizeof(struct coroutine *));
+		S->co = (coroutine **)realloc(S->co, S->cap * 2 * sizeof(struct coroutine *));
 		memset(S->co + S->cap , 0 , sizeof(struct coroutine *) * S->cap);
 		S->co[S->cap] = co;
 		S->cap *= 2;
@@ -128,6 +128,7 @@ coroutine_resume(struct schedule * S, int id) {
 	if (C == NULL)
 		return;
 	int status = C->status;
+    uintptr_t ptr;
 	switch(status) {
 	case COROUTINE_READY:
 		getcontext(&C->ctx);
@@ -136,7 +137,7 @@ coroutine_resume(struct schedule * S, int id) {
 		C->ctx.uc_link = &S->main;
 		S->running = id;
 		C->status = COROUTINE_RUNNING;
-		uintptr_t ptr = (uintptr_t)S;
+		ptr = (uintptr_t)S;
 		makecontext(&C->ctx, (void (*)(void)) mainfunc, 2, (uint32_t)ptr, (uint32_t)(ptr>>32));
 		swapcontext(&S->main, &C->ctx);
 		break;
@@ -158,7 +159,7 @@ _save_stack(struct coroutine *C, char *top) {
 	if (C->cap < top - &dummy) {
 		free(C->stack);
 		C->cap = top-&dummy;
-		C->stack = malloc(C->cap);
+		C->stack = (char *)malloc(C->cap);
 	}
 	C->size = top - &dummy;
 	memcpy(C->stack, &dummy, C->size);

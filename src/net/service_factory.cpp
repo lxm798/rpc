@@ -2,6 +2,9 @@
 namespace lyy {
 DEFINE_SINGTON(ServiceFactory)
 
+ServiceFactory::ServiceFactory() {
+}
+
 void ServiceFactory::register_service(const std::string &name, 
         ::google::protobuf::Service *service) {
     _name2service.insert(std::pair<std::string, ::google::protobuf::Service*>(name, service));
@@ -12,4 +15,5 @@ void ServiceFactory::register_service(const std::string &name,
     }
     return NULL;
 }
-}
+
+} //namespace lyy

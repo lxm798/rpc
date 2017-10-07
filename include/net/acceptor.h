@@ -11,6 +11,7 @@
 #include "net/policy/protocol.h"
 #include "net/event.h"
 #include <functional>
+#include <coroutine.h>
 namespace lyy {
     struct SocketProcessInfo {
         Socket *socket;

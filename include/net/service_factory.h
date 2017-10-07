@@ -13,5 +13,5 @@ public:
 private:
     std::map<std::string, ::google::protobuf::Service*> _name2service;
 };
-}
+} //namespace lyy
 #endif

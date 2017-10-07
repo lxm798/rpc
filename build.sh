@@ -29,7 +29,7 @@ PREFIX_PATH='./;./third-lib/gflags/build'
 #PREFIX_PATH='./'
 mkdir -p $BUILD_DIR/$BUILD_TYPE \
   && cd $BUILD_DIR/$BUILD_TYPE \
-  && cmake \
+  && CXX="g++" cmake \
            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
            -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
            "-DCMAKE_PREFIX_PATH=$PREFIX_PATH" \

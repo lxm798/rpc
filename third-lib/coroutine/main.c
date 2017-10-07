@@ -7,7 +7,7 @@ struct args {
 
 static void
 foo(struct schedule * S, void *ud) {
-	struct args * arg = ud;
+	struct args * arg = (struct args*) ud;
 	int start = arg->n;
 	int i;
 	for (i=0;i<5;i++) {
