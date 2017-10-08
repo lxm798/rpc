@@ -1,4 +1,5 @@
 file(GLOB SRCS *.cc)
 add_library(protocol  ${SRCS})
+set_target_properties(protocol PROPERTIES COMPILE_FLAGS "-std=c++11")
 file (GLOB HEADERS *.h)
 INSTALL(FILES ${HEADERS} DESTINATION include/)

@@ -56,7 +56,7 @@ namespace lyy {
             _ev = std::shared_ptr<epoll_event>(new epoll_event());
             epoll_event * ev = _ev.get();
             Handler *handler = new Handler();
-            handler->_input_handler = std::bind(&Acceptor::acceptFd, *this);
+            handler->_input_handler = std::bind(&Acceptor::acceptFd, this);
             ev->events = EPOLLIN | EPOLLET;
             ev->data.ptr = handler;
             looper->post(_fd, ev);

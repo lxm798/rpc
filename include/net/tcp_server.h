@@ -18,13 +18,18 @@ namespace lyy {
         public:
         TcpServer(std::string ip, uint16_t port):_port(port),_poller(new Poller()) {
             _poller->init();
-            _looper.set_poller(_poller);
+            _looper = std::shared_ptr<Looper>(new Looper());
+            _looper->set_poller(_poller);
+            if (_looper->init() < 0) {
+                FATAL("init looper failed, exit");
+                exit(1);
+            }
         }
 
         int start() {
             _acceptor = std::shared_ptr<Acceptor>(new Acceptor(_ip, _port));
-            _acceptor->init(std::shared_ptr<Looper>(&_looper));
-            _looper.loop();
+            _acceptor->init(_looper);
+            _looper->loop();
             return 0;
         }
 
@@ -68,7 +73,7 @@ namespace lyy {
             char buf[1025];
             std::shared_ptr<Acceptor> _acceptor;
             std::shared_ptr<Poller> _poller;
-            Looper _looper;
+            std::shared_ptr<Looper> _looper;
     };
 }
 #endif

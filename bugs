@@ -13,3 +13,5 @@
     #ifdef __cplusplus
         }
     #endif
+5. protbuf link - function undefined
+   version of libprotobuf is not same with protoc, sub it

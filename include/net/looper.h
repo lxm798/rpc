@@ -22,6 +22,7 @@ typedef std::function<void()> PendingFunction;
                 _status = UNINITIAL;
             }
             Looper(std::shared_ptr<Poller> poller) {
+                _status = UNINITIAL;
                 _poller = poller;
             }
             int init() {
@@ -30,7 +31,9 @@ typedef std::function<void()> PendingFunction;
                     _status = RUN;
                     return -1;
                 }
-                pipe(_fds);
+                if (pipe(_fds) < 0) {
+                    return -1;
+                }
                 epoll_event *ev = new epoll_event();
                 ev->events = EPOLLET|EPOLLIN; 
                 Socket *socket = new Socket();
@@ -63,6 +66,10 @@ typedef std::function<void()> PendingFunction;
                 return write(_fds[1], &a, 1);
             }
             void loop() {
+                if (!is_run()) {
+                    FATAL("looper is not inited, exit");
+                    exit(1);
+                }
                 struct epoll_event events[200];
                 int ret;
 
