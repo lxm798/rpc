@@ -4,3 +4,5 @@
     not set include_directories
 3. class not decleared even if i have include header file
     maybe circular reference
+4. protbuf link - function undefined
+   version of libprotobuf is not same with protoc, sub it
