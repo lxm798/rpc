@@ -9,3 +9,5 @@ build/*
 third-lib/gflags
 third-lib/gflags/*
 *.pb.h
+*.pb.cc
+*Makefile

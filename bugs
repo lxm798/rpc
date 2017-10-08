@@ -4,3 +4,12 @@
     not set include_directories
 3. class not decleared even if i have include header file
     maybe circular reference
+4. undefined function at link time
+    coroutine use gcc, by prog is compiled by g++, should use
+    #ifdef __cplusplus
+        extern "C" {               // 告诉编译器下列代码要以C链接约定的模式进行链接
+    #endif
+            void funcName();
+    #ifdef __cplusplus
+        }
+    #endif
