@@ -6,6 +6,7 @@
 #include "utils/macros.h"
 #include "yy_proto.pb.h"
 #include "net/service_factory.h"
+#include <string.h>
 namespace lyy {
 int process (char *buf, uint32_t body_len, char** resp_buf, uint32_t &len);
 struct Protocol {
@@ -33,16 +34,20 @@ int HeaderProtocol<YyHeader>::process_header(Socket* socket, YyHeader* header) {
         FATAL("socket is NULL!");
         return -1;
     }
-    char buf[8];
+    char buf[9];
+    memset(buf, 0, 9);
     if (socket->read(buf, 8) < 8) {
+        WARNING("read fd:%d failed", socket->fd());
         return -1;
     }
     // big 
-    header->magic_num = buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3];
+    header->magic_num = ntohl(buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3]);
     if (header->magic_num != 10) {
+        WARNING("read magic_num:%d, maybe string:%s", header->magic_num, buf);
         return -2;
     }
-    header->body_len = buf[4]<< 24 | buf[5] << 16 | buf[6] << 8 | buf[7];
+    NOTICE("head magic_num:%d", header->magic_num);
+    header->body_len = ntohl(buf[4]<< 24 | buf[5] << 16 | buf[6] << 8 | buf[7]);
     return 0;
 }
 

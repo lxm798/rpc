@@ -19,8 +19,9 @@ namespace lyy {
     };
     void co_process(schedule * schedule, void *ud) {
         SocketProcessInfo *spi = static_cast<SocketProcessInfo *> (ud);
-        if (spi->protocol->process(spi->socket) < 0) {
-            WARNING("process socket %d failed", spi->socket->fd());
+        int ret = 0;
+        if ((ret = spi->protocol->process(spi->socket)) < 0) {
+            WARNING("process socket %d failedi, ret:%d", spi->socket->fd(), ret);
         }
     }
 
@@ -34,12 +35,16 @@ namespace lyy {
         }
         int Listen(const char * /*ip*/, uint16_t port) {
             int listenfd = ::socket(AF_INET, SOCK_STREAM, 0);
+            setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (void*)1, sizeof(int));
             ::sockaddr_in serveraddr;
             ::bzero(&serveraddr, sizeof(serveraddr));
             serveraddr.sin_family = AF_INET;
             serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
             serveraddr.sin_port = htons(port);
-            ::bind(listenfd, (::sockaddr *)&serveraddr, sizeof(serveraddr));
+            if (::bind(listenfd, (::sockaddr *)&serveraddr, sizeof(serveraddr)) < 0) {
+                FATAL("bind failed errno:%d", errno);
+                exit(1);
+            }
             ::listen(listenfd, 5);
             return listenfd;
         }
@@ -81,6 +86,7 @@ namespace lyy {
                     FATAL("new socket is null");
                     return;
                 }
+                s->set_looper(_looper);
                 s->set_fd(fd);
                 SocketProcessInfo *spi = new SocketProcessInfo();
                 spi->socket = s;

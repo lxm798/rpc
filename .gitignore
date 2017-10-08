@@ -11,3 +11,4 @@ third-lib/gflags/*
 *.pb.h
 *.pb.cc
 *Makefile
+*CMakeCXXCompilerId.cpp

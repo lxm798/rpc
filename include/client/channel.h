@@ -44,66 +44,7 @@ private:
     const char* _service_name;
     ChannelOptions *_opt;
 };
-
-void Channel::CallMethod(const MethodDescriptor* method,
-                          ::google::protobuf::RpcController* controller,
-                          const Message* request,
-                          Message* response,
-                          Closure* done) {
-    if (request == NULL) {
-        controller->SetFailed("request is NULL");
-        return;
-    }
-    Looper *looper = g_looper.get();
-
-    if (looper == NULL || !looper->is_run()) {
-        InnerRequest *inner_request = new InnerRequest();
-        inner_request->set_reqeust(request);
-        inner_request->response(response);
-        inner_request->set_controller(controller);
-        inner_request->set_method(method);
-
-        if (g_dispatcher.put(request) < 0) {
-            controller->SetFailed("req queue is full!");
-            return;
-        }
-        _inner_request->wait();
-        return;
-    }
-    if (looper != NULL && !looper->is_run()) {
-        controller->SetFailed("looper not run");
-        return;
-    }
-
-    // must in a coroutine
-    const std::string &service_name = 
-        method->service()->full_name();
-    MetaRequest *req = new MetaRequest();
-    req->set_service_name(method->service->name());
-    req->set_method_name(method->full_name());
-    std::string data;
-    if (!request->SerializeToString(data)) {
-        controller->SetFailed("request seriliaze failed!");
-        controller->SetErrCode(ErrCode.PROTO_SERILIZE_FAILED);
-        return;
-    }
-    req->set_data(data);
-    char data2socket[req->ByteSize()];
-    req->SerilizedToArray(data2socket, req->ByteSize());
-    Socket *socket = SocketManager::instance()->
-        get_socket(_service_name);
-    if (!in_couroutine()) {
-        SocketUD sud = new SocketUD();
-        sud->socket = socket;
-        sud->data = buf;
-        sud->size = req->ByteSize;
-        int id = coroutine_new(looper, socket_write, sud);
-        co_resume(id);
-    } else {
-        socket->write(buf, req->ByteSize);
-    }
-}
-}
+} // namespace
 /*
     class Channel {
         public:

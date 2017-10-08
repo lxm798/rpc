@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <string>
+#include <memory>
 namespace lyy {
 class Looper;
 class IoBuf {
@@ -24,8 +25,7 @@ class IoBuf {
             _str.append(buf, size);
             return 0;
         }
-        const char* get_raw_buf(int &size) {
-            size= _str.size();
+        const char* get_raw_buf() {
             return _str.c_str();
         }
         uint32_t size() {
@@ -43,8 +43,8 @@ class Socket {
     public:
         Socket();
         void set_fd(int fd);
-        int set_looper(Looper *loop);
-        int connect();
+        int set_looper(std::shared_ptr<Looper> loop);
+        virtual int connect();
         int read(char *buf, int size);
         int write(const char *buf, int size);
         int close();
@@ -58,7 +58,7 @@ class Socket {
         int fd();
     protected:
         int _fd;
-        Looper *_looper;
+        std::shared_ptr<Looper> _looper;
         int _r_cnt;
         int _w_cnt;
         int _co_id;
@@ -74,7 +74,7 @@ class Tcp4Socket : public Socket {
 
         int sets_looper(Looper *loop);
         
-        int connetct();
+        int connect();
 
         int read(char* buf, int size);
 
