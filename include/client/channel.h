@@ -1,16 +1,18 @@
-#ifndef LYY_NET_CHANNEL_H
-#define LYY_NET_CHANNEL_H
+#ifndef LYY_CLIENT_CHANNEL_H
+#define LYY_CLIENT_CHANNEL_H
 #include <cstddef>
 
 #include <boost/shared_ptr.hpp>
 #include "net/poller.h"
 #include <boost/function.hpp>
 #include <google/protobuf/service.h>
+#include <google/protobuf/message.h>
 #include "net/socket.h"
 #include "utils/tlv.h"
 #include "net/looper.h"
 #include "net/inner_request.h"
 #include "yy_proto.pb.h"
+#include "client/dispatcher.h"
 namespace lyy {
 using ::google::protobuf::MethodDescriptor;
 using ::google::protobuf::Message;
@@ -25,21 +27,20 @@ struct ChannelOptions {
 struct SocketUD {
     Socket *socket;
     const char *data;
+    int size;
 };
-class Channel : public RpcChannel {
+class Channel : public ::google::protobuf::RpcChannel {
 public:
-    Channel() : _service_name(NULL), _opt(NULL) {
-    }
-    void init(const char *service_name, ChannelOptions *opt) {
-        _service_name = service_name;
-        _opt = opt;
-    }
+    Channel();
+
+    void init(const char *service_name, ChannelOptions *opt);
 
     virtual void CallMethod(const MethodDescriptor* method,
                           ::google::protobuf::RpcController* controller,
                           const Message* request,
                           Message* response,
                           Closure* done);
+    ~Channel();   
 private:
     const char* _service_name;
     ChannelOptions *_opt;

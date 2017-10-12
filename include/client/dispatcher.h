@@ -1,40 +1,18 @@
+#ifndef CLIENT_DISPATCHER_H
+#define CLIENT_DISPATCHER_H
 #include <thread>
 #include <coroutine.h>
 #include <memory>
 #include "yy_proto.pb.h"
 #include "net/rpccontroller.h"
 #include "net/socket_manager.h"
-
+#include "utils/tlv.h"
+#include "net/inner_request.h"
+#include "net/looper.h"
 namespace lyy {
 extern Tlv<Looper> g_looper;
-void request_handler(schedule *S, void *ud) {
-    InnerRequest *req = static_cast<InnerRequest *>(ud);
-// must in a coroutine
-    const std::string &service_name = 
-        req->method()->service()->full_name();
-    MetaRequest *meta = new MetaRequest();
-    meta->set_service_name(req->method()->service()->name());
-    meta->set_method_name(req->method()->full_name());
-    std::string data;
-    if (!meta->SerializeToString(&data)) {
-        ((RpcController*)(req->controller()))->SetFailed("request seriliaze failed!");
-        ((RpcController*)(req->controller()))->SetErrCode(PROTO_SERILIZE_FAILED);
-        return;
-    }
-    meta->set_data(data);
-    char data2socket[meta->ByteSize()];
-    meta->SerializeToArray(data2socket, meta->ByteSize());
-    Socket *socket = SocketManager::instance()->get_socket(service_name);
-    if (socket->write(data2socket, meta->ByteSize()) < 0) {
-        return;
-    }
-    if (socket->read(data2socket, 8)) {
-    }
-}
-void co_main(InnerRequest *req) {
-    int id = coroutine_new(g_looper->co_scheduler(), request_handler, req);
-    coroutine_resume(g_looper->co_scheduler(), id);
-}
+void request_handler(schedule *S, void *ud);
+void co_main(InnerRequest *req);
 class WorkerPool {
 public:
     
@@ -70,3 +48,4 @@ private:
     int _worker_count;
 };
 }
+#endif

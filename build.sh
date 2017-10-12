@@ -19,6 +19,7 @@ if [ ! -d './third-lib/glog' ]; then
 fi
 #./tool/protoc -I=./include/net/policy/ --cpp_out=./include/net/policy  include/net/policy/*.proto
 protoc -I=./proto/ --cpp_out=./proto/  proto/*.proto
+protoc -I=./test/ --cpp_out=./test/  test/*.proto
 set -x
 
 SOURCE_DIR=`pwd`

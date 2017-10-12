@@ -1,11 +1,12 @@
-#ifndef LYY_NET_INNER_REQUEST
-#define LYY_NET_INNER_REQUEST
+#ifndef LYY_NET_INNER_REQUEST_H
+#define LYY_NET_INNER_REQUEST_H
 #include <google/protobuf/message.h>
 #include <google/protobuf/service.h>
+#include "utils/count_down_latch.h"
 namespace lyy {
 class InnerRequest {
 public:
-    InnerRequest() {}
+    InnerRequest() : _count_down_latch(1) {}
     InnerRequest * set_request(const ::google::protobuf::Message *request) {
         _request = request;
         return this;
@@ -35,11 +36,13 @@ public:
         return _method;
     }
     void wait();
+    void notify();
 private:
     const ::google::protobuf::Message *_request;
     ::google::protobuf::Message *_response;
     ::google::protobuf::RpcController *_controller;
     const ::google::protobuf::MethodDescriptor *_method;
+    CountDownLatch _count_down_latch;
 };
 }
 #endif
