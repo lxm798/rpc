@@ -27,6 +27,7 @@
 
 #define DEFINE_SINGTON(CLASS_NAME) \
     CLASS_NAME *CLASS_NAME::_instance = 0; \
+    CLASS_NAME::CLASS_NAME() {} \
     CLASS_NAME* CLASS_NAME::instance() { \
         if (_instance == NULL) { \
             _instance = new CLASS_NAME(); \
