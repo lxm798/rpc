@@ -1,6 +1,7 @@
 #include "client/dispatcher.h"
 namespace lyy {
 void request_handler(schedule *S, void *ud) {
+    WARNING("start process request");
     InnerRequest *req = static_cast<InnerRequest *>(ud);
 // must in a coroutine
     const std::string &service_name = 
@@ -17,6 +18,7 @@ void request_handler(schedule *S, void *ud) {
     meta->set_data(data);
     char data2socket[meta->ByteSize()];
     meta->SerializeToArray(data2socket, meta->ByteSize());
+    WARNING("try get socket");
     Socket *socket = SocketManager::instance()->get_socket(service_name);
     if (socket->write(data2socket, meta->ByteSize()) < 0) {
         return;
@@ -28,6 +30,11 @@ void request_handler(schedule *S, void *ud) {
 void co_main(InnerRequest *req) {
     int id = coroutine_new(g_looper->co_scheduler(), request_handler, req);
     coroutine_resume(g_looper->co_scheduler(), id);
+}
+
+void thread_func(Looper * looper) {
+    g_looper.set(looper);
+    looper->loop();
 }
 
 }

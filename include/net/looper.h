@@ -98,10 +98,10 @@ typedef std::function<void()> PendingFunction;
                         }
                         */
                     }
-                }
-                PendingFunction func;
-                while ((func = _pending_functions.get()) != NULL) {
-                    func();
+                    PendingFunction func;
+                    while ((func = _pending_functions.get()) != NULL) {
+                        func();
+                    }
                 }
             }
 

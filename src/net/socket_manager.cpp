@@ -19,8 +19,11 @@ Socket* SocketManager::get_socket(const std::string & service_name) {
     }
     */
     Socket *socket = NULL;
-    socket = new Tcp4Socket("127.0.0.1", 8085);
-    socket->connect();
+    socket = new Tcp4Socket("127.0.0.1", 8763);
+    if (socket->connect() == -1) {
+        WARNING("connect to server failed");
+        return NULL;
+    }
 
     return socket;
 }

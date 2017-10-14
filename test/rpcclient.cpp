@@ -2,8 +2,13 @@
 #include "echo.pb.h"
 #include "net/rpccontroller.h"
 #include <iostream>
+#include <gflags/gflags.h>
+#include <glog/logging.h>
 using namespace lyy;
-int main() {
+int main(int argc, char *argv[]) {
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
+    google::SetLogDestination(google::INFO,"./rpcclient_"); 
     ChannelOptions options;
     options.timeout_ms = 3000;
     options.protocol = 0;
@@ -24,4 +29,5 @@ int main() {
     } else {
         std::cout << "req failed" << std::endl;
     }
+    return 0;
 }

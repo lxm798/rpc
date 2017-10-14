@@ -68,6 +68,12 @@ void Channel::CallMethod(const ::google::protobuf::MethodDescriptor* method,
     
     Socket *socket = SocketManager::instance()->
         get_socket(_service_name);
+    if (socket == NULL) {
+        WARNING("get socket failed, errno=%d", errno);
+        controller->SetFailed("get socket failed!");
+        controller->SetErrCode(CONNECT_SERVER_FAILED);
+        return;
+    }
     /*
     if (!in_coroutine()) {
         SocketUD *sud = new SocketUD();
@@ -81,5 +87,6 @@ void Channel::CallMethod(const ::google::protobuf::MethodDescriptor* method,
     }
     */
     socket->write(data2socket, 8 + req->ByteSize());
+    return;
 } // CallMethod
 } // namespace lyy

@@ -43,7 +43,7 @@ int Socket::read(char *buf, int size) {
         while (1) {
             // one more copy
             ret = ::read(_fd, inner_buf ,1024);
-            WARNING("ret = %d, buf:%s", ret, inner_buf);
+            WARNING("read fd=%d, ret = %d, errno=%d, buf:%s", _fd, ret, errno, inner_buf);
             if (ret < 0 && errno == EAGAIN) {
                 WARNING("errno = EAGAIN");
                 coroutine_yield(_looper->co_scheduler());

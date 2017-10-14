@@ -1,3 +1,25 @@
+set(CXX_FLAGS
+ -g
+ # -DVALGRIND
+ # -DMUDUO_STD_STRING
+ -DCHECK_PTHREAD_RETURN_VALUE
+ -D_FILE_OFFSET_BITS=64
+ -Wall
+ -Wextra
+ -Werror
+ # -Wconversion
+ -Wno-unused-parameter
+ #-Wold-style-cast
+ -Woverloaded-virtual
+ -Wpointer-arith
+ #-Wshadow
+ -Wwrite-strings
+ -march=native
+ # -MMD
+ # -std=c++0x
+ -rdynamic
+ )
+
 file(GLOB SRCS "*.cpp")
 #set(SRCS SRC)
 

@@ -13,20 +13,23 @@ namespace lyy {
 extern Tlv<Looper> g_looper;
 void request_handler(schedule *S, void *ud);
 void co_main(InnerRequest *req);
+void thread_func(Looper *);
+
 class WorkerPool {
 public:
     
     WorkerPool (int size): _index(0), _worker_count(size) {
+        init();
     }
     int init() {
-        int size = _worker.size();
-        for (int i=0; i < size; ++i) {
+        //int size = _worker.size();
+        for (int i = 0; i < _worker_count; ++i) {
             std::shared_ptr<Poller> poller = std::shared_ptr<Poller>(new Poller());
             poller->init();
             Looper *looper = new Looper(poller);
             looper->init();
             _loopers.push_back(std::shared_ptr<Looper>(looper));
-            _worker.push_back(std::thread(std::bind(&Looper::loop, looper)));
+            _worker.push_back(std::thread(std::bind(thread_func, looper)));
         }
         return 0;
     }

@@ -3,5 +3,5 @@
 #include "client/dispatcher.h"
 namespace lyy {
 Tlv<Looper> g_looper;
-WorkerPool g_dispatcher(100);
+WorkerPool g_dispatcher(1);
 }

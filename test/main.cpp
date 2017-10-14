@@ -6,8 +6,6 @@
 
 #include <gflags/gflags.h>
 #include <glog/logging.h>
-
-#include <boost/shared_ptr.hpp>
 namespace lyy {
 int start() {
     TcpServer server("", 8763);
