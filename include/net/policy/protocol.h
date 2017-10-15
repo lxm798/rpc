@@ -41,13 +41,14 @@ int HeaderProtocol<YyHeader>::process_header(Socket* socket, YyHeader* header) {
         return -1;
     }
     // big 
-    header->magic_num = ntohl(buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3]);
+    header->magic_num = ntohl(*(int*)(buf));
     if (header->magic_num != 10) {
         WARNING("read magic_num:%d, maybe string:%s", header->magic_num, buf);
         return -2;
     }
     NOTICE("head magic_num:%d", header->magic_num);
-    header->body_len = ntohl(buf[4]<< 24 | buf[5] << 16 | buf[6] << 8 | buf[7]);
+    char *body_len = buf + 4;
+    header->body_len = ntohl(*(int*)(body_len));
     return 0;
 }
 
@@ -57,11 +58,11 @@ int HeaderProtocol<YyHeader>::process_body(Socket *socket, YyHeader *header) {
     if (socket->read(req_buf, header->body_len) < static_cast<int>(header->body_len)) {
         return -1;
     }
-    char ** resp_buf = NULL;
+    char * resp_buf = NULL;
     uint32_t len;
     // avoid write sync of several resp_buf 
-    ::lyy::process(req_buf, header->body_len, resp_buf, len);
-    return socket->write(*resp_buf, len);
+    ::lyy::process(req_buf, header->body_len, &resp_buf, len);
+    return socket->write(resp_buf, len);
 }
 
 int process (char *buf, uint32_t body_len, char** resp_buf, uint32_t &len) {
@@ -69,27 +70,40 @@ int process (char *buf, uint32_t body_len, char** resp_buf, uint32_t &len) {
     meta_req->ParseFromArray(buf, body_len);
     const std::string & service_name = meta_req->service_name();
     ::google::protobuf::Service * service = ServiceFactory::instance()->get_service_by_name(service_name);
-    const std::string method = meta_req->method_name();
-    const ::google::protobuf::MethodDescriptor
-        *md = service->GetDescriptor()->FindMethodByName(method);
-    google::protobuf::Message *req = service->GetRequestPrototype(md).New();
-    google::protobuf::Message *resp = service->GetResponsePrototype(md).New();
-    req->ParseFromString(meta_req->data());
-
     RpcController *controller = new RpcController();
-    service->CallMethod(md, controller,
-            req, resp, NULL);
+    google::protobuf::Message *resp;
+    if (service == NULL) {
+        controller->SetErrCode(SERVICE_NOT_EXIST);
+    } else {
+        const std::string method = meta_req->method_name();
+        const ::google::protobuf::MethodDescriptor
+            *md = service->GetDescriptor()->FindMethodByName(method);
+        google::protobuf::Message *req = service->GetRequestPrototype(md).New();
+        resp = service->GetResponsePrototype(md).New();
+        req->ParseFromString(meta_req->data());
+
+        service->CallMethod(md, controller,
+                req, resp, NULL);
+    }
     MetaResponse *meta_resp = new MetaResponse();
     meta_resp->set_errcode(controller->ErrCode());
     if (controller->Failed()) {
         meta_resp->set_errmsg(controller->ErrorText());
+    } else if(resp == NULL) {
+        meta_resp->set_errcode(UNKNOWN);
     } else {
-        meta_resp->set_data(meta_resp->SerializeAsString());
+        meta_resp->set_data(resp->SerializeAsString());
     }
     size_t size = meta_resp->ByteSize();
     len = static_cast<uint32_t>(size);
-    *resp_buf = (char *)malloc(len);
-    meta_resp->SerializeToArray(resp_buf, len);
+    *resp_buf = (char *)malloc(len + 8);
+    memset(*resp_buf, 0 , 8 + len);
+    meta_resp->SerializeToArray(*resp_buf + 8, len);
+    int *resp_body_len = (int*) (*resp_buf + 4);
+    *resp_body_len = htonl(len);
+    int *magic_num = (int *)(*resp_buf);
+    *magic_num = htonl(10);
+    len = len + 8;
     return 0;
 }
 }

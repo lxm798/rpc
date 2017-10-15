@@ -6,7 +6,7 @@ message MetaRequest {
     bytes  data = 3;
 }
 message MetaResponse {
-    int32 errcode = 1;
-    string errmsg = 2;
+    int32 errcode = 1 [default=0];
+    string errmsg = 2 [default=""];
     bytes data = 3;
 }

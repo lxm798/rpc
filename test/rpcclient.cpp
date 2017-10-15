@@ -4,11 +4,15 @@
 #include <iostream>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
+#include "utils/tlv.h"
 using namespace lyy;
+//extern ::lyy::Tlv<::lyy::Looper> g_looper;
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
     google::SetLogDestination(google::INFO,"./rpcclient_"); 
+
+ //   g_looper.init();
     ChannelOptions options;
     options.timeout_ms = 3000;
     options.protocol = 0;

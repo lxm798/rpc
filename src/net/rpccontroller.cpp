@@ -37,4 +37,10 @@ namespace lyy {
     int RpcController::ErrCode() const {
         return _errcode;
     }
+
+    void RpcController::SetErrCode(int errcode) {
+        _errcode = errcode;
+    }
+
+
 }

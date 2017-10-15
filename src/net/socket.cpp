@@ -7,7 +7,9 @@
 #include "utils/macros.h"
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <utils/tlv.h>
 namespace lyy {
+extern Tlv<Looper> g_looper;
 Socket::Socket() {
     _iobuf = new IoBuf();
 }
@@ -46,7 +48,7 @@ int Socket::read(char *buf, int size) {
             WARNING("read fd=%d, ret = %d, errno=%d, buf:%s", _fd, ret, errno, inner_buf);
             if (ret < 0 && errno == EAGAIN) {
                 WARNING("errno = EAGAIN");
-                coroutine_yield(_looper->co_scheduler());
+                coroutine_yield(g_looper->co_scheduler());
                 continue;
             }
             if (ret < 0) {
@@ -129,6 +131,7 @@ int Tcp4Socket::connect() {
         return -1;
     }
     _fd = sockfd;
+    fcntl(_fd, F_SETFL, O_NONBLOCK); 
     return sockfd;
 }
 } // namespace lyy

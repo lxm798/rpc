@@ -6,6 +6,10 @@ namespace lyy {
         UNKNOWN = 1,
         PROTO_SERILIZE_FAILED = 10,
         CONNECT_SERVER_FAILED = 12,
+        SERVICE_NOT_EXIST = 13,
+        READ_FD_FAILED=14,
+        WRITE_FD_FAILED=15,
+        MAGIC_NUM_ERROR =16,
     };
 } // namespace lyy
 #endif

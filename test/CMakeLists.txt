@@ -23,7 +23,7 @@ set(CXX_FLAGS
 
 include_directories(${PROJECT_BINARY_DIR})
 set(SRCS
-    main.cpp)
+    main.cpp echo.pb.cc)
 add_executable(exe ${SRCS})
 target_link_libraries(exe utils protobuf protocol gflags reactor11)
 set_target_properties(exe PROPERTIES COMPILE_FLAGS "-std=c++11")

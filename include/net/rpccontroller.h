@@ -28,6 +28,8 @@ public:
 
     virtual void SetErrCode(::lyy::ErrCode errcode);
 
+    void SetErrCode(int errcode);
+
     virtual int ErrCode() const;
 
 private:
