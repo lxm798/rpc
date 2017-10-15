@@ -128,6 +128,7 @@ int Tcp4Socket::connect() {
         WARNING("\n Error : Connect Failed \n");
         return -1;
     }
+    _fd = sockfd;
     return sockfd;
 }
 } // namespace lyy

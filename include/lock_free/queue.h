@@ -62,7 +62,7 @@ class TLockFreeQueue {
         TLockFreeQueue(int max_queue_size) : _head_tail(0), _max_queue_size(max_queue_size) {
             _data.resize(_max_queue_size);
         }
-        T get();
+        bool get(T &);
         void put(const T& t);
 
         int empty();
@@ -113,31 +113,26 @@ bool TLockFreeQueue<T>::add_head(uint64_t & new_head_tail) {
 }
 
 template<typename T>
-T TLockFreeQueue<T>::get() {
+bool TLockFreeQueue<T>::get(T & t) {
     uint64_t new_head_tail = 0;
     uint64_t old_head_tail = _head_tail;
-    int retry = 3;
     bool suc = true;
     do {
         do {
             old_head_tail = _head_tail;
             if ((suc = add_head(new_head_tail))) {
             } else {
-                if (retry--) {
-                    usleep(5);
-                } else {
-                    pthread_yield();
-                }
+                return false;
             }
         } while (!suc);
-        retry = 3;
     } while (!CAS(&_head_tail, old_head_tail, new_head_tail));
     uint32_t head = ((new_head_tail >> 32)  + _max_queue_size - 1) % _max_queue_size;
     TNode<T> * node = &_data[head];         
     do {
     } while (!CAS(&node->status, STATUS_READY,STATUS_REMOVING));
     node->status = STATUS_IDLE;
-    return node->v;
+    t = node->v;
+    return true;
 }
 
 template<typename T>

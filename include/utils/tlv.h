@@ -16,6 +16,7 @@ class Tlv {
 };
 template<typename T>
 Tlv<T>::Tlv() {
+    pthread_key_create(&_key, NULL);
 }
 
 template<typename T>
