@@ -38,6 +38,7 @@ void request_handler(schedule *S, void *ud) {
         req->notify();
         return;
     }
+    printf("read fd:%d head:8\n", socket->fd());
     int resp_magic_num = ntohl(*(int*)(data2socket));
     if (resp_magic_num != 10) {
         controller->SetErrCode(MAGIC_NUM_ERROR);
@@ -47,6 +48,7 @@ void request_handler(schedule *S, void *ud) {
         return;
     }
     NOTICE("head resp  magic_num:%d", resp_magic_num);
+
     int body_len = ntohl(*(int*)(data2socket+4));
     if (body_len <= 1) {
         controller->SetErrCode(MAGIC_NUM_ERROR);
@@ -56,6 +58,11 @@ void request_handler(schedule *S, void *ud) {
         return;
     }
     char *buf = (char *) malloc(body_len);
+    if (socket->read(buf, body_len) < 0) {
+        printf("read fd:%d not body_len:%d\n", socket->fd(), body_len);
+    } else {
+        printf("read fd:%d body_len:%d\n", socket->fd(), body_len);
+    }
     MetaResponse *meta_resp = new MetaResponse();
     meta_resp->ParseFromArray(buf, body_len);
     if (meta_resp->errcode() != OK) {

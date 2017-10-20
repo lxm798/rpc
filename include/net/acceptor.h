@@ -20,8 +20,12 @@ namespace lyy {
     void co_process(schedule * schedule, void *ud) {
         SocketProcessInfo *spi = static_cast<SocketProcessInfo *> (ud);
         int ret = 0;
+        printf("process fd:%d\n", spi->socket->fd());
         if ((ret = spi->protocol->process(spi->socket)) < 0) {
             WARNING("process socket %d failedi, ret:%d", spi->socket->fd(), ret);
+            printf("write %d byte, fd:%d\n", ret, spi->socket->fd());
+        } else {
+            printf("write %d byte, fd:%d\n", ret, spi->socket->fd());
         }
     }
 
@@ -70,7 +74,7 @@ namespace lyy {
 		void acceptFd() {
             while (1) {
                 int fd = accept(_fd,(sockaddr*)&cliaddr, &len);
-                if (fd == EAGAIN) {
+                if (fd < 0 && errno == EAGAIN) {
                     printf("no more to accept\n");
                     break;
                 } else if (fd < 0){
@@ -78,7 +82,7 @@ namespace lyy {
                     break;
                 }
                 set_socket_nonblock(fd);
-                printf("client connect client port:%d\n", cliaddr.sin_port);
+                printf("client connect client port:%d fd:%d\n", cliaddr.sin_port, fd);
                 // 是否可以传递局部变量
                 epoll_event * ev = new epoll_event();
                 Socket *s = new Socket();

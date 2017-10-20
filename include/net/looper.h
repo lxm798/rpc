@@ -73,30 +73,27 @@ typedef std::function<void()> PendingFunction;
                 struct epoll_event events[200];
                 int ret;
 
+                int i = 0;
                 for(;;) {
                     ret = _poller->wait(events, 200, -1);
                     if (ret < 0) {
                         continue ;
                     }
+                    printf("loop for %d times\n", ++i);
 
                     for (int i=0; i<ret; ++i) {
                         int event = events[i].events;
                         Handler *handler = (Handler *)events[i].data.ptr;
                         if (event & EPOLLIN) {
                             handler->_input_handler();    
-                        } else if (event & EPOLLOUT) {
+                        }
+                        if (event & EPOLLOUT) {
                             handler->_output_handler();
-                        } else {
-                           handler->_close_handler(); 
                         }
-                        /*
-                        if (socket->coroutineid() == 0) {
-                            char ch;
-                            socket->read(&ch,1);   
-                        } else {
-                        coroutine_resume(co_scheduler(), socket->coroutineid());
+                        if (event & EPOLLERR){
+                            printf("fd err");
+                           //handler->_close_handler(); 
                         }
-                        */
                     }
                     PendingFunction func;
                     while (_pending_functions.get(func)) {
