@@ -60,6 +60,10 @@ typedef std::function<void()> PendingFunction;
             int post(int fd, epoll_event* ev) {
                 return _poller->add(fd , ev);
             }
+            int postRemove(int fd) {
+                return _poller->del(fd);
+            }
+
             int post(PendingFunction function) {
                 _pending_functions.put(function);
                 char a;
@@ -85,15 +89,19 @@ typedef std::function<void()> PendingFunction;
                         int event = events[i].events;
                         Handler *handler = (Handler *)events[i].data.ptr;
                         if (event & EPOLLIN) {
+                            printf("event in\n");
                             handler->_input_handler();    
                         }
                         if (event & EPOLLOUT) {
+                            printf("event out\n");
                             handler->_output_handler();
                         }
                         if (event & EPOLLERR){
-                            printf("fd err");
+                            printf("fd err\n\n");
                            //handler->_close_handler(); 
                         }
+                        printf("event all\n");
+
                     }
                     PendingFunction func;
                     while (_pending_functions.get(func)) {

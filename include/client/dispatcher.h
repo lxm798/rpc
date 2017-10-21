@@ -23,7 +23,8 @@ public:
     }
     int init() {
         //int size = _worker.size();
-        for (int i = 0; i < _worker_count; ++i) {
+        int i = static_cast<int>(_worker.size());
+        for (; i < _worker_count; ++i) {
             std::shared_ptr<Poller> poller = std::shared_ptr<Poller>(new Poller());
             poller->init();
             Looper *looper = new Looper(poller);

@@ -6,7 +6,7 @@ namespace lyy {
     }
 
     bool RpcController::Failed() const {
-        return _errcode == OK;
+        return _errcode != OK;
     }
 
     void RpcController::SetFailed(const string &reason) {

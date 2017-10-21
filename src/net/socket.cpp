@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <utils/tlv.h>
+#include <stdio.h>
 namespace lyy {
 extern Tlv<Looper> g_looper;
 Socket::Socket() {
@@ -43,11 +44,19 @@ int Socket::read(char *buf, int size) {
         char inner_buf[1024];
         memset(inner_buf, 0, 1024);
         while (1) {
+            if (_iobuf->size() >= static_cast<uint32_t>(size)) {
+                memcpy(buf, _iobuf->get_raw_buf(), size);
+                _iobuf->remove_first_n(size);
+                WARNING("read total %d byte, %s", size, _iobuf->get_raw_buf());
+                return size;
+            }
             // one more copy
             ret = ::read(_fd, inner_buf ,1024);
             WARNING("read fd=%d, ret = %d, errno=%d, buf:%s", _fd, ret, errno, inner_buf);
+            printf("read fd=%d, ret = %d, errno=%d, buf:%s", _fd, ret, errno, inner_buf);
             if (ret < 0 && errno == EAGAIN) {
                 WARNING("errno = EAGAIN");
+                printf("errno = EAGAIN, yield");
                 coroutine_yield(g_looper->co_scheduler());
                 continue;
             }
@@ -61,23 +70,10 @@ int Socket::read(char *buf, int size) {
                 break;
             }
         }
-        if (_iobuf->size() >= (uint32_t)size) {
-            memcpy(buf, _iobuf->get_raw_buf(), size);
-            _iobuf->remove_first_n(size);
-            WARNING("read total %d byte, %s", size, _iobuf->get_raw_buf());
-            return size;
-        }
         if (readcount < 0) {
             //remove 
+            coroutine_yield(g_looper->co_scheduler());
         }
-/*
-        epoll_event *ev = new epoll_event();
-
-        ev->events = EPOLLET|EPOLLIN;
-        ev->data.ptr = this;
-        _looper->post(_fd, ev);
-        */
-        coroutine_yield(_looper->co_scheduler());
     } while (1);
     WARNING("read error with  byte : %d", size);
     return readcount;
@@ -87,6 +83,7 @@ int Socket::write(const char *buf, int size) {
     if (_fd < 0) {
         return -1;
     }
+    printf("write log fd:%d %s size:%d\n", _fd, buf + 8, size);
     int total = size;
     do {
         int ret = ::write(_fd, buf, size);

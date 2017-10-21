@@ -6,7 +6,7 @@
 namespace lyy {
 class InnerRequest {
 public:
-    InnerRequest() : _count_down_latch(1) {}
+    InnerRequest() : _count_down_latch(1), _coid(-1) {}
     InnerRequest * set_request(const ::google::protobuf::Message *request) {
         _request = request;
         return this;
@@ -35,6 +35,12 @@ public:
     const ::google::protobuf::MethodDescriptor * method() {
         return _method;
     }
+    int coid() {
+        return _coid;
+    }
+    void set_coid(int coid) {
+        _coid = coid;
+    }
     void wait();
     void notify();
 private:
@@ -43,6 +49,7 @@ private:
     ::google::protobuf::RpcController *_controller;
     const ::google::protobuf::MethodDescriptor *_method;
     CountDownLatch _count_down_latch;
+    int _coid;
 };
 }
 #endif

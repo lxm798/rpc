@@ -9,7 +9,7 @@ using std::string;
 namespace lyy {
 class RpcController : public ::google::protobuf::RpcController {
 public:
-    inline RpcController() {}
+    inline RpcController() : _errcode(OK) {}
     virtual ~RpcController() {};
 
     virtual void Reset();

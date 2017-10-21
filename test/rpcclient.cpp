@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
     google::SetLogDestination(google::INFO,"./rpcclient_"); 
+    g_dispatcher.init();
 
  //   g_looper.init();
     ChannelOptions options;
