@@ -48,4 +48,10 @@ add_executable(client ${client_src})
 target_link_libraries(client utils protobuf protocol gflags rpcclient11)
 set_target_properties(client PROPERTIES COMPILE_FLAGS "-std=c++11")
 
+set(stress_src
+    stressclient.cpp echo.pb.cc)
+add_executable(stress ${stress_src})
+target_link_libraries(stress utils protobuf protocol gflags rpcclient11)
+set_target_properties(stress PROPERTIES COMPILE_FLAGS "-std=c++11")
+
 
