@@ -42,6 +42,7 @@ class IoBuf {
 class Socket {
     public:
         Socket();
+        virtual ~Socket();
         void set_fd(int fd);
         int set_looper(std::shared_ptr<Looper> loop);
         virtual int connect();
@@ -56,6 +57,8 @@ class Socket {
             return _iobuf;
         }
         int fd();
+        void set_service_name(const std::string &);
+        const std::string & service_name();
     protected:
         int _fd;
         std::shared_ptr<Looper> _looper;
@@ -63,6 +66,7 @@ class Socket {
         int _w_cnt;
         int _co_id;
         IoBuf *_iobuf;
+        std::string _service_name;
 };
 
 class Tcp4Socket : public Socket {

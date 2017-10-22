@@ -37,12 +37,17 @@ public:
     int put(InnerRequest *req) {
         return _loopers[_index%_worker_count]->post(std::bind(co_main, req));
     }
-    void stop() {
+    int stop() {
         auto beg = _worker.begin();
         auto end = _worker.end();
         while (beg != end) {
+            _loopers[beg - _worker.begin()]->stop();
             beg->join();
+            ++beg;
         } 
+        return 0;
+    }
+    ~WorkerPool() {
     }
 private:
     vector<std::thread> _worker;

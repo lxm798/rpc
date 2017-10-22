@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <utils/tlv.h>
 #include <stdio.h>
+#include <unistd.h>
 namespace lyy {
 extern Tlv<Looper> g_looper;
 Socket::Socket() {
@@ -107,6 +108,20 @@ int Socket::write(const char *buf, int size) {
 
 int Socket::connect() {
     return -1;
+}
+
+Socket::~Socket() {
+    if (_fd != 0) {
+        ::close(_fd);
+    }
+    delete _iobuf;
+    return;
+}
+void Socket::set_service_name(const std::string & service_name) {
+    _service_name = service_name;
+}
+const std::string & Socket::service_name() {
+    return _service_name;
 }
 
 int Tcp4Socket::connect() {

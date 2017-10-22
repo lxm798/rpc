@@ -5,8 +5,8 @@ void request_handler(schedule *S, void *ud) {
     WARNING("start process request");
     InnerRequest *req = static_cast<InnerRequest *>(ud);
 // must in a coroutine
-    const std::string &service_name = 
-        req->method()->service()->full_name();
+//    const std::string &service_name = 
+//        req->method()->service()->full_name();
     MetaRequest *meta = new MetaRequest();
     meta->set_service_name(req->method()->service()->full_name());
     meta->set_method_name(req->method()->name());
@@ -29,7 +29,8 @@ void request_handler(schedule *S, void *ud) {
  
     printf("1\n");
     WARNING("try get socket");
-    Socket *socket = SocketManager::instance()->get_socket(service_name);
+    std::string service = "1234";
+    Socket *socket = SocketManager::instance()->get_socket(service);
     epoll_event * ev = new epoll_event();
     ev->events = EPOLLET | EPOLLIN | EPOLLOUT;
     Handler *handler = new Handler();
@@ -47,6 +48,7 @@ void request_handler(schedule *S, void *ud) {
         controller->SetErrCode(READ_FD_FAILED);
         controller->SetFailed("read socket failed");
         req->notify();
+        SocketManager::instance()->delete_socket(socket);
         return;
     }
 
@@ -58,6 +60,7 @@ void request_handler(schedule *S, void *ud) {
         controller->SetFailed("magic num not 10");
         req->notify();
         WARNING("read resp magic_num:%d, num 10", resp_magic_num);
+        SocketManager::instance()->release_socket(socket);
         return;
     }
     NOTICE("head resp  magic_num:%d", resp_magic_num);
@@ -72,6 +75,7 @@ void request_handler(schedule *S, void *ud) {
         WARNING("read body_len:%d, error", body_len);
         coroutine_yield(g_looper->co_scheduler());
         g_looper->postRemove(socket->fd());
+        SocketManager::instance()->delete_socket(socket);
         return;
     }
     printf("6\n");
@@ -89,11 +93,13 @@ void request_handler(schedule *S, void *ud) {
         controller->SetFailed(meta_resp->errmsg());
         controller->SetErrCode(meta_resp->errcode());
         req->notify();
+        SocketManager::instance()->release_socket(socket);
         return;
     }
     req->response()->ParseFromString(meta_resp->data());
     printf("req->response() %s", meta_resp->data().c_str());
     req->notify();
+    SocketManager::instance()->release_socket(socket);
     g_looper->postRemove(socket->fd());
     coroutine_yield(g_looper->co_scheduler());
 }

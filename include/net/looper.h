@@ -64,6 +64,11 @@ typedef std::function<void()> PendingFunction;
                 return _poller->del(fd);
             }
 
+            int stop() {
+                _status = STOP;
+                return post([]()->void{});
+            }
+
             int post(PendingFunction function) {
                 _pending_functions.put(function);
                 char a;
@@ -78,7 +83,7 @@ typedef std::function<void()> PendingFunction;
                 int ret;
 
                 int i = 0;
-                for(;;) {
+                for(; is_run();) {
                     ret = _poller->wait(events, 200, -1);
                     if (ret < 0) {
                         continue ;

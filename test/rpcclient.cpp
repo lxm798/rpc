@@ -7,14 +7,19 @@
 #include "utils/tlv.h"
 #include <cstdio>
 #include <unistd.h>
+#include "client/service_manager.h"
 using namespace lyy;
 //extern ::lyy::Tlv<::lyy::Looper> g_looper;
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
     google::SetLogDestination(google::INFO,"./rpcclient_"); 
-    g_dispatcher.init();
 
+    if (ServiceManager::instance()->proc_init() < 0) {
+        FATAL("proc init failed");
+        printf("proc_init failed\n");
+        return -1;
+    }
  //   g_looper.init();
     ChannelOptions options;
     options.timeout_ms = 3000;
@@ -66,6 +71,11 @@ int main(int argc, char *argv[]) {
     } else {
         std::cout << "req failed" << std::endl;
     }
-   // thr.join();
+    if (ServiceManager::instance()->proc_destroy() < 0) {
+        FATAL("proc init failed");
+        printf("proc_init failed\n");
+        return -1;
+    }
+
     return 0;
 }
