@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     std::vector<std::thread*> threads;
     for (int i =0 ; i < 100; ++i) {
         std::thread *thr = new std::thread([] () {
-            ::printf("start exe new thread");
+            ::printf("start exe new thread\n");
             ChannelOptions options;
             options.timeout_ms = 3000;
             options.protocol = 0;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
             EchoResponse response;
             RpcController cntl;
 
-            ::printf("start echo in new thread");
+            ::printf("start echo in new thread\n");
             for (int j =0 ;j < 10; ++j) {
                 mstub.echo(&cntl,
                     &request,
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
                    NULL);
                 ::printf("echo end");
                  if (cntl.ErrCode() == OK) {
-                    std::cout << response.content() << std::endl;
+                    std::cout << "req sucess: content" << response.content() << std::endl;
                 } else {
                     std::cout << "req failed" << std::endl;
                 }
@@ -69,13 +69,14 @@ int main(int argc, char *argv[]) {
             beg != threads.end();
             ++beg) {
         (*beg)->join();
+        delete *beg;
     }
     mstub.echo(&cntl,
             &request,
             &response,
             NULL);
     if (cntl.ErrCode() == OK) {
-        std::cout << response.content() << std::endl;
+        std::cout << "req sucess: content" << response.content() << std::endl;
     } else {
         std::cout << "req failed" << std::endl;
     }
