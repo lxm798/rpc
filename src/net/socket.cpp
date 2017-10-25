@@ -55,7 +55,7 @@ int Socket::read(char *buf, int size) {
             ret = ::read(_fd, inner_buf ,1024);
             WARNING("read fd=%d, ret = %d, errno=%d, buf:%s", _fd, ret, errno, inner_buf);
             printf("read fd=%d, ret = %d, errno=%d, buf:%s", _fd, ret, errno, inner_buf);
-            if (ret < 0 && errno == EAGAIN) {
+            if (ret <= 0 && errno == EAGAIN) {
                 WARNING("errno = EAGAIN");
                 printf("errno = EAGAIN, yield");
                 coroutine_yield(g_looper->co_scheduler());
@@ -88,7 +88,7 @@ int Socket::write(const char *buf, int size) {
     int total = size;
     do {
         int ret = ::write(_fd, buf, size);
-        if (ret < 0 && errno == EAGAIN) {
+        if (ret <= 0 && errno == EAGAIN) {
             coroutine_yield(_looper->co_scheduler());
             continue;
         }

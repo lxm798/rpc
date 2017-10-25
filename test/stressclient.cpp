@@ -49,14 +49,14 @@ int main(int argc, char *argv[]) {
             RpcController cntl;
 
             ::printf("start echo in new thread\n");
-            for (int j =0 ;j < 10; ++j) {
+            for (int j =0 ;j < 100; ++j) {
                 mstub.echo(&cntl,
                     &request,
                     &response,
                    NULL);
                 ::printf("echo end");
                  if (cntl.ErrCode() == OK) {
-                    std::cout << "req sucess: content" << response.content() << std::endl;
+                    std::cout << std::endl << "req sucess: content" << response.content() << std::endl;
                 } else {
                     std::cout << "req failed" << std::endl;
                 }
@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
         (*beg)->join();
         delete *beg;
     }
+    /*
     mstub.echo(&cntl,
             &request,
             &response,
@@ -80,6 +81,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::cout << "req failed" << std::endl;
     }
+    */
     if (ServiceManager::instance()->proc_destroy() < 0) {
         FATAL("proc init failed");
         printf("proc_init failed\n");

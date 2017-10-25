@@ -14,18 +14,25 @@
 #include <coroutine.h>
 namespace lyy {
     struct SocketProcessInfo {
+        SocketProcessInfo() : socket(NULL), protocol(NULL), looper(NULL), stop(0) {
+        }
         Socket *socket;
         Protocol *protocol;
+        std::shared_ptr<Looper> looper;
+        int stop;
     };
     void co_process(schedule * schedule, void *ud) {
         SocketProcessInfo *spi = static_cast<SocketProcessInfo *> (ud);
         int ret = 0;
-        printf("process fd:%d\n", spi->socket->fd());
-        if ((ret = spi->protocol->process(spi->socket)) < 0) {
-            WARNING("process socket %d failedi, ret:%d", spi->socket->fd(), ret);
-            printf("write %d byte, fd:%d\n", ret, spi->socket->fd());
-        } else {
-            printf("write %d byte, fd:%d\n", ret, spi->socket->fd());
+        while (!(spi->stop)) {
+            printf("process fd:%d\n", spi->socket->fd());
+            if ((ret = spi->protocol->process(spi->socket)) < 0) {
+                WARNING("process socket %d failedi, ret:%d", spi->socket->fd(), ret);
+                printf("write %d byte, fd:%d\n", ret, spi->socket->fd());
+            } else {
+                printf("write %d byte, fd:%d\n", ret, spi->socket->fd());
+            }
+            coroutine_yield(spi->looper->co_scheduler());
         }
     }
 
@@ -95,12 +102,14 @@ namespace lyy {
                 SocketProcessInfo *spi = new SocketProcessInfo();
                 spi->socket = s;
                 spi->protocol = new HeaderProtocol<YyHeader>(); 
+                spi->looper = _looper;
                 int id = coroutine_new(_looper->co_scheduler(), co_process, spi);
                 s->set_coroutineid(id);
                 ev->events = EPOLLET | EPOLLIN | EPOLLOUT;
                 Handler *handler = new Handler();
                 handler->_input_handler = std::bind(coroutine_resume, _looper->co_scheduler(), id);
                 handler->_output_handler = std::bind(coroutine_resume, _looper->co_scheduler(), id);
+                handler->set_pri_data(spi);
                 ev->data.ptr = handler;
                 _looper->post(fd, ev);
             }
