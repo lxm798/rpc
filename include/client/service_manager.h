@@ -8,6 +8,7 @@
 #ifndef LYY_CLIENT_SERVICE_MANAGER_H
 #define LYY_CLIENT_SERVICE_MANAGER_H
 #include "utils/macros.h"
+#include "utils/flags.h"
 namespace lyy {
 class ServiceManager {
     DECLARE_SINGTON(ServiceManager);

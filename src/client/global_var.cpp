@@ -7,5 +7,5 @@
 #include "utils/tlv.h"
 #include "client/dispatcher.h"
 namespace lyy {
-WorkerPool g_dispatcher(1);
+WorkerPool g_dispatcher;
 }

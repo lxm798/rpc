@@ -18,10 +18,11 @@ void thread_func(Looper *);
 class WorkerPool {
 public:
     
-    WorkerPool (int size): _index(0), _worker_count(size) {
-        init();
+    WorkerPool (): _index(0), _worker_count(0) {
     }
-    int init() {
+    
+    int init(int worker_thr_num) {
+        _worker_count = worker_thr_num;
         //int size = _worker.size();
         int i = static_cast<int>(_worker.size());
         for (; i < _worker_count; ++i) {

@@ -53,5 +53,6 @@ set(stress_src
 add_executable(stress ${stress_src})
 target_link_libraries(stress utils protobuf protocol gflags rpcclient11)
 set_target_properties(stress PROPERTIES COMPILE_FLAGS "-std=c++11")
+configure_file(conf  ./)
 
 

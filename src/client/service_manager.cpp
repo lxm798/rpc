@@ -8,6 +8,7 @@
 #include <string>
 #include "net/socket_manager.h"
 #include "client/dispatcher.h"
+#include "utils/flags.h"
 namespace lyy {
 extern WorkerPool g_dispatcher;
 DEFINE_SINGTON(ServiceManager)
@@ -16,7 +17,7 @@ int ServiceManager::proc_init() {
     if (SocketManager::instance()->add_service_name(service_name) < 0) {
         return -1;
     }
-    g_dispatcher.init();
+    g_dispatcher.init(FLAGS_worker_thr_num);
     return 0;
 }
 int ServiceManager::proc_destroy() {
