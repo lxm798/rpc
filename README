@@ -1,2 +1,3 @@
 v.0.1.0
-简单的基于pb的rpc框架，不支持访问超时，不支持连接池
+a simple rpc base on protobuf and coroutine
+简单的基于pb的rpc框架，不支持访问超时
